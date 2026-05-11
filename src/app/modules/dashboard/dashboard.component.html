@@ -1,0 +1,142 @@
+<div class="dashboard">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Buenos días, {{ user()?.name?.split(' ')?.[0] }} 👋</h1>
+            <p class="page-sub">{{ today | date:'dd/MM/yyyy h:mm a' }} · {{ tenant()?.businessName }}</p>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" cdkDropList (cdkDropListDropped)="drop($event)">
+        @for (kpi of kpis(); track kpi.id) {
+
+        <!-- Modificado aquí: Guardamos el color en la variable --card-color -->
+        <div class="kpi-card" cdkDrag [style.--card-color]="kpi.color()">
+
+            <div class="drag-handle">
+                ⋮⋮
+            </div>
+
+            <div class="kpi-label">
+                {{ kpi.label }}
+            </div>
+
+            @switch (kpi.type) {
+
+            @case ('today-sales') {
+            <div class="kpi-value">
+                {{ summary()?.today?.revenue | currency:'COP':'symbol-narrow':'1.0-0' }}
+            </div>
+
+            <div class="kpi-sub">
+                {{ summary()?.today?.count }} transacciones
+            </div>
+            }
+
+            @case ('month-sales') {
+            <div class="kpi-value">
+                {{ summary()?.month?.revenue | currency:'COP':'symbol-narrow':'1.0-0' }}
+            </div>
+
+            <div class="kpi-sub">
+                {{ summary()?.month?.count }} transacciones
+            </div>
+            }
+
+            @case ('expenses') {
+            <div class="kpi-value">
+                {{ expenseSum() | currency:'COP':'symbol-narrow':'1.0-0' }}
+            </div>
+
+            <div class="kpi-sub">
+                {{ expenseCount() }} registros
+            </div>
+            }
+
+            @case ('low-stock') {
+            <div class="kpi-value">
+                {{ lowStockCount() }}
+            </div>
+
+            <div class="kpi-sub">
+                Requieren reposición
+            </div>
+            }
+
+            }
+
+        </div>
+
+        }
+    </div>
+
+    <!-- Panel de Gráfica Semanal -->
+    <div class="panel chart-panel">
+        <div class="panel-header">
+            <h3>Tendencia de ventas (Últimos 7 días)</h3>
+        </div>
+        <div class="chart-container">
+            <canvas #salesChart></canvas>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Ventas recientes -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>Ventas recientes</h3>
+                <a routerLink="/sales" class="panel-link">Ver todas →</a>
+            </div>
+            @if (recentSales().length === 0) {
+            <div class="empty-state">
+                <span>💰</span>
+                <p>No hay ventas hoy aún</p>
+                <a routerLink="/sales" class="btn-outline">Registrar venta</a>
+            </div>
+            } @else {
+            <div class="sale-list">
+                @for (sale of recentSales(); track sale.id) {
+                <div class="sale-item">
+                    <div class="sale-num"># {{ sale.saleNumber }}</div>
+                    <div class="sale-info">
+                        <span class="sale-customer">{{ sale.customerName || 'Cliente general' }}</span>
+                        <span class="sale-time">{{ sale.createdAt | date:'h:mm a' }}</span>
+                    </div>
+                    <div class="sale-amount">{{ sale.total | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+
+        <!-- Inventario bajo -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>Stock bajo</h3>
+                <a routerLink="/inventory" class="panel-link">Ver inventario →</a>
+            </div>
+            @if (lowStockProducts().length === 0) {
+            <div class="empty-state">
+                <span>📦</span>
+                <p>Todo el inventario está bien</p>
+            </div>
+            } @else {
+            <div class="stock-list">
+                @for (p of lowStockProducts(); track p.id) {
+                <div class="stock-item">
+                    <div class="stock-name">{{ p.name }}</div>
+                    <div class="stock-bar-wrap">
+                        <div class="stock-bar">
+                            <div class="stock-fill" [style.width.%]="getStockPct(p)" [class.critical]="p.stock === 0"
+                                [class.low]="p.stock > 0 && p.stock <= p.minStock">
+                            </div>
+                        </div>
+                        <span class="stock-val">{{ p.stock | number }} {{ p.unit }}</span>
+                    </div>
+                </div>
+                }
+            </div>
+            }
+        </div>
+    </div>
+</div>

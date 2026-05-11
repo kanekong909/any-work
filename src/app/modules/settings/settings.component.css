@@ -1,0 +1,613 @@
+.page {
+    max-width: 780px;
+}
+
+.page-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 1.75rem;
+}
+
+.section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.875rem;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+input {
+    padding: 0.65rem 0.875rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--brand-primary);
+}
+
+.btn-primary {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.color-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.palette {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.swatch {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    color: white;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s;
+}
+
+.swatch:hover {
+    transform: scale(1.15);
+}
+
+.swatch.active {
+    border-color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+.swatch.custom {
+    border: 2px dashed var(--border-color);
+}
+
+.swatch.custom input {
+    display: none;
+}
+
+.theme-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.theme-btn {
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-page);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.theme-btn.active {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+}
+
+.plan-current {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.plan-badge {
+    background: var(--brand-primary);
+    color: white;
+    padding: 4px 14px;
+    border-radius: 99px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.plan-expires {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+}
+
+.plan-card {
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.plan-card.current {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary-10);
+}
+
+.plan-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.plan-price {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.plan-price span {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.plan-users {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.btn-upgrade {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}
+
+.plan-active-badge {
+    background: #dcfce7;
+    color: #16a34a;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.pay-info {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.pay-info h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    color: #92400e;
+}
+
+.pay-info p {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: #78350f;
+}
+
+.pay-detail {
+    font-size: 0.875rem;
+    color: #78350f;
+    margin-bottom: 0.5rem;
+}
+
+.btn-whatsapp {
+    display: inline-block;
+    background: #25d366;
+    color: white;
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+}
+
+@media (max-width: 600px) {
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.users-desc {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem;
+    background: var(--bg-page);
+    border-radius: 10px;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.user-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.user-email {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.role-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--brand-primary-10);
+    color: var(--brand-primary);
+}
+
+.role-badge.cashier {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.role-badge.warehouse {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.role-badge.supervisor {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-dot {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+}
+
+.status-dot.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-dot.inactive {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+.action-btn:hover {
+    background: var(--bg-hover);
+}
+
+.users-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    padding: 1.5rem 0;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+select {
+    padding: 0.65rem 0.875rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+select:focus {
+    border-color: var(--brand-primary);
+}
+
+input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.danger-title {
+    color: #ef4444;
+}
+
+.danger-card {
+    border-color: #fecaca;
+}
+
+.danger-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.danger-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.danger-desc {
+    font-size: 0.825rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.delete-warning {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo-preview {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.logo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Sora', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.logo-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.logo-preview:hover .logo-overlay {
+    opacity: 1;
+}
+
+.logo-overlay span {
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.logo-info {
+    flex: 1;
+}
+
+.logo-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.logo-hint {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.logo-uploading {
+    font-size: 0.78rem;
+    color: var(--brand-primary);
+    margin-top: 4px;
+}

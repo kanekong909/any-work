@@ -1,0 +1,115 @@
+<div class="page">
+    <div class="page-header">
+    <div>
+        <h1 class="page-title">Proveedores</h1>
+        <p class="page-sub">{{ total() }} proveedores registrados</p>
+    </div>
+    <button class="btn-primary" (click)="openModal()">+ Nuevo proveedor</button>
+    </div>
+
+    <div class="filters">
+    <input type="search" [(ngModel)]="search" (ngModelChange)="onSearch()"
+        placeholder="Buscar proveedor..." class="search-input">
+    </div>
+
+    <div class="table-wrap">
+    <table>
+        <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Contacto</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Registrado</th>
+            <th></th></tr>
+        </thead>
+        <tbody>
+        @for (s of suppliers(); track s.id) {
+            <tr>
+            <td class="name-cell">{{ s.name }}</td>
+            <td>{{ s.contactPerson || '—' }}</td>
+            <td>{{ s.phone || '—' }}</td>
+            <td>{{ s.email || '—' }}</td>
+            <td>{{ parseDate(s.createdAt) | date:'d MMM yyyy' }}</td>
+            <td>
+                <button class="action-btn" (click)="openModal(s)">
+                <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
+                </button>
+                <button class="action-btn delete" (click)="toDelete.set(s.id)">
+                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
+                </button>
+            </td>
+            </tr>
+        }
+        @if (suppliers().length === 0) {
+            <tr><td colspan="6" class="empty-row">No hay proveedores registrados</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>
+
+@if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+        <h3>{{ editing() ? 'Editar proveedor' : 'Nuevo proveedor' }}</h3>
+        <button (click)="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+        <div class="field">
+            <label>Nombre empresa *</label>
+            <input type="text" [(ngModel)]="form.name" placeholder="Ej: Distribuidora El Mayorista">
+        </div>
+        <div class="field">
+            <label>Persona de contacto</label>
+            <input type="text" [(ngModel)]="form.contactPerson" placeholder="Nombre del contacto">
+        </div>
+        <div class="field-row">
+            <div class="field">
+            <label>Teléfono</label>
+            <input type="tel" [(ngModel)]="form.phone" placeholder="300 000 0000">
+            </div>
+            <div class="field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+            </div>
+        </div>
+        <div class="field">
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
+        </div>
+        <div class="field">
+            <label>Notas</label>
+            <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="saving()" (click)="save()">
+            {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear proveedor') }}
+        </button>
+        </div>
+    </div>
+    </div>
+}
+
+@if (toDelete()) {
+    <div class="modal-overlay" (click)="toDelete.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">
+        <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
+        </div>
+        <h3>¿Eliminar proveedor?</h3>
+        <p>Esta acción no se puede deshacer.</p>
+        <div class="confirm-actions">
+        <button class="btn-cancel" (click)="toDelete.set(null)">Cancelar</button>
+        <button class="btn-delete" (click)="confirmDelete()">Sí, eliminar</button>
+        </div>
+    </div>
+    </div>
+}
+
+@if (toast()) {
+    <div class="toast">{{ toast() }}</div>
+}

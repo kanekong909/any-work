@@ -1,0 +1,296 @@
+<div class="page">
+<h1 class="page-title">Configuración</h1>
+
+<div class="section">
+    <h2 class="section-title">Datos del negocio</h2>
+    <div class="card">
+    <!-- Logo del negocio -->
+    <div class="logo-section">
+        <div class="logo-preview" (click)="logoInput.click()">
+        @if (form.logoUrl) {
+            <img [src]="getLogoUrl(form.logoUrl)" alt="Logo">
+        } @else {
+            <div class="logo-placeholder" [style.background]="form.primaryColor || '#6366f1'">
+            {{ tenant()?.businessName?.charAt(0) || 'N' }}
+            </div>
+        }
+        <div class="logo-overlay">
+            <span>📷 Cambiar</span>
+        </div>
+        </div>
+        <div class="logo-info">
+        <div class="logo-label">Logo del negocio</div>
+        <div class="logo-hint">JPG, PNG o SVG · Máx. 2MB · Se mostrará en el sidebar</div>
+        @if (uploadingLogo()) {
+            <div class="logo-uploading">Subiendo imagen...</div>
+        }
+        </div>
+        <input #logoInput type="file" accept="image/*" style="display:none"
+        (change)="onLogoChange($any($event.target).files[0])">
+    </div>
+    <div class="field-row">
+        <div class="field">
+        <label>Nombre del negocio</label>
+        <input type="text" [(ngModel)]="form.businessName">
+        </div>
+        <div class="field">
+        <label>Ciudad</label>
+        <input type="text" [(ngModel)]="form.city">
+        </div>
+    </div>
+    <div class="field-row">
+        <div class="field">
+        <label>Teléfono</label>
+        <input type="tel" [(ngModel)]="form.phone">
+        </div>
+        <div class="field">
+        <label>NIT / Cédula</label>
+        <input type="text" [(ngModel)]="form.taxId">
+        </div>
+    </div>
+    <button class="btn-primary" [disabled]="saving()" (click)="saveInfo()">
+        {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+    </button>
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Personalización visual</h2>
+    <div class="card">
+    <div class="color-block">
+        <label>Color principal</label>
+        <div class="palette">
+        @for (c of colors; track c) {
+            <button class="swatch" [style.background]="c"
+            [class.active]="form.primaryColor === c"
+            (click)="setPrimary(c)">
+            @if (form.primaryColor === c) { <span>✓</span> }
+            </button>
+        }
+        <label class="swatch custom" [style.background]="form.primaryColor">
+            <input type="color" [value]="form.primaryColor"
+            (input)="setPrimary($any($event.target).value)">🎨
+        </label>
+        </div>
+    </div>
+    <div class="color-block">
+        <label>Color de acento</label>
+        <div class="palette">
+        @for (c of colors; track c) {
+            <button class="swatch" [style.background]="c"
+            [class.active]="form.accentColor === c"
+            (click)="form.accentColor = c">
+            @if (form.accentColor === c) { <span>✓</span> }
+            </button>
+        }
+        </div>
+    </div>
+    <div class="theme-row">
+        <span>Tema</span>
+       <button class="theme-btn" [class.active]="form.colorTheme === 'light'"
+        (click)="form.colorTheme = 'light'; previewTheme('light')">☀️ Claro</button>
+        <button class="theme-btn" [class.active]="form.colorTheme === 'dark'"
+        (click)="form.colorTheme = 'dark'; previewTheme('dark')">🌙 Oscuro</button>
+    </div>
+    <button class="btn-primary" [disabled]="savingColors()" (click)="saveColors()">
+        {{ savingColors() ? 'Aplicando...' : 'Aplicar colores' }}
+    </button>
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Tu plan</h2>
+    <div class="card">
+    @if (subscription()) {
+        <div class="plan-current">
+        <div class="plan-badge">{{ subscription()!.plan.displayName }}</div>
+        <div class="plan-expires">
+            @if (subscription()!.expiresAt) {
+                <div><strong>Vence:</strong> {{ subscription()!.expiresAt | date:'fullDate' }}</div>
+            } @else { Sin vencimiento }
+        </div>
+        </div>
+    }
+    <div class="plans-grid">
+        @for (plan of plans(); track plan.id) {
+        <div class="plan-card" [class.current]="subscription()?.plan?.name === plan.name">
+            <div class="plan-name">{{ plan.displayName }}</div>
+            <div class="plan-price">
+            @if (plan.priceMonthly === 0) { Gratis }
+            @else { {{ plan.priceMonthly | number }} <span>/mes</span> }
+            </div>
+            <div class="plan-users">
+            {{ plan.maxUsers === -1 ? 'Usuarios ilimitados' : 'Hasta ' + plan.maxUsers + ' usuarios' }}
+            </div>
+            @if (subscription()?.plan?.name !== plan.name && plan.priceMonthly > 0) {
+            <button class="btn-upgrade" (click)="requestUpgrade(plan)">Solicitar upgrade</button>
+            }
+            @if (subscription()?.plan?.name === plan.name) {
+            <span class="plan-active-badge">Plan actual</span>
+            }
+        </div>
+        }
+    </div>
+    @if (showPayInfo()) {
+        <div class="pay-info">
+        <h4>Instrucciones de pago</h4>
+        <p>Realiza la transferencia y envía el comprobante por WhatsApp:</p>
+        <div class="pay-detail">📱 Nequi: <strong>{{ nequiNumber }}</strong></div>
+        <div class="pay-detail">🏦 {{ bankInfo }}</div>
+        <a [href]="'https://wa.me/' + whatsapp" target="_blank" class="btn-whatsapp">
+            Enviar comprobante por WhatsApp →
+        </a>
+        </div>
+    }
+    </div>
+</div>
+
+<!-- Sección usuarios -->
+<div class="section">
+    <h2 class="section-title">Equipo de trabajo</h2>
+    <div class="card">
+    <div class="users-header">
+        <p class="users-desc">Gestiona quién tiene acceso a tu negocio y con qué rol.</p>
+        <button class="btn-primary" 
+            [disabled]="alcanzoLimiteUsuarios()" 
+            (click)="openUserModal()"
+            [title]="alcanzoLimiteUsuarios() ? 'Has alcanzado el límite de usuarios de tu plan' : 'Invitar nuevo miembro'">
+            @if (alcanzoLimiteUsuarios()) {
+            🔒 Límite alcanzado
+            } @else {
+            + Invitar usuario
+            }
+        </button>
+    </div>
+
+    <div class="users-list">
+        @for (u of users(); track u.id) {
+        <div class="user-row">
+            <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
+            {{ u.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-info">
+            <span class="user-name">{{ u.name }}</span>
+            <span class="user-email">{{ u.email }}</span>
+            </div>
+            <span class="role-badge" [class]="u.role">{{ getRoleLabel(u.role) }}</span>
+            <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
+            {{ u.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+            <div class="user-actions" style="display: flex; gap: 8px; align-items: center;">
+            @if (userToDelete()?.id === u.id) {
+                <!-- Estado de Confirmación integrada en la interfaz -->
+                <span style="font-size: 0.8rem; color: #ef4444; font-weight: 500;">¿Eliminar?</span>
+                <button class="action-btn" (click)="confirmDeleteUser()" style="color: #10b981; font-weight: bold;" title="Confirmar">✓</button>
+                <button class="action-btn" (click)="cancelDelete()" style="color: #ef4444; font-weight: bold;" title="Cancelar">✕</button>
+            } @else {
+                <!-- Estado Normal -->
+                <button class="action-btn" (click)="openUserModal(u)">
+                <img src="assets/icons/edit.svg" alt="Editar" style="width: 20px; height: 20px;">
+                </button>
+                
+                <button class="action-btn" (click)="prepareDelete(u)">
+                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 20px; height: 20px;">
+                </button>
+            }
+            </div>
+        </div>
+        }
+        @if (users().length === 0) {
+        <div class="users-empty">Solo tú tienes acceso por ahora</div>
+        }
+    </div>
+    </div>
+</div>
+
+@if (showUserModal()) {
+    <div class="modal-overlay" (click)="closeUserModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+        <h3>{{ editingUser() ? 'Editar usuario' : 'Invitar usuario' }}</h3>
+        <button (click)="closeUserModal()">✕</button>
+        </div>
+        <div class="modal-body">
+        <div class="field">
+            <label>Nombre completo *</label>
+            <input type="text" [(ngModel)]="userForm.name" placeholder="Nombre del usuario">
+        </div>
+        <div class="field">
+            <label>Correo electrónico *</label>
+            <input type="email" [(ngModel)]="userForm.email" placeholder="correo@ejemplo.com"
+            [disabled]="!!editingUser()">
+        </div>
+        @if (!editingUser()) {
+            <div class="field">
+            <label>Contraseña temporal *</label>
+            <input type="text" [(ngModel)]="userForm.password" placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 número">
+            </div>
+        }
+        <div class="field">
+            <label>Rol</label>
+            <select [(ngModel)]="userForm.role">
+            <option value="admin">Administrador — acceso completo</option>
+            <option value="cashier">Cajero — solo ventas</option>
+            <option value="warehouse">Bodega — solo inventario</option>
+            <option value="supervisor">Supervisor — solo lectura</option>
+            </select>
+        </div>
+        @if (editingUser()) {
+            <div class="field">
+            <label>Estado</label>
+            <select [(ngModel)]="userForm.isActive">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+            </select>
+            </div>
+        }
+        </div>
+        <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeUserModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="savingUser()" (click)="saveUser()">
+            {{ savingUser() ? 'Guardando...' : (editingUser() ? 'Actualizar' : 'Crear usuario') }}
+        </button>
+        </div>
+    </div>
+    </div>
+}
+
+<!-- Sección peligrosa -->
+<div class="section">
+    <h2 class="section-title danger-title">Zona de peligro</h2>
+    <div class="card danger-card">
+    <div class="danger-row">
+        <div>
+        <div class="danger-label">Eliminar cuenta</div>
+        <div class="danger-desc">Se eliminarán permanentemente tu negocio, usuarios, productos, ventas y gastos. Esta acción no se puede deshacer.</div>
+        </div>
+        <button class="btn-danger" (click)="showDeleteAccount.set(true)">Eliminar cuenta</button>
+    </div>
+    </div>
+</div>
+
+@if (showDeleteAccount()) {
+    <div class="modal-overlay" (click)="showDeleteAccount.set(false)">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+        <h3>⚠️ Eliminar cuenta</h3>
+        <button (click)="showDeleteAccount.set(false)">✕</button>
+        </div>
+        <div class="modal-body">
+        <p class="delete-warning">Esta acción eliminará permanentemente todos los datos de <strong>{{ tenant()?.businessName }}</strong>. No hay vuelta atrás.</p>
+        <div class="field">
+            <label>Escribe <strong>ELIMINAR</strong> para confirmar</label>
+            <input type="text" [(ngModel)]="deleteConfirmText" placeholder="ELIMINAR">
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn-cancel" (click)="showDeleteAccount.set(false)">Cancelar</button>
+        <button class="btn-danger" [disabled]="deleteConfirmText !== 'ELIMINAR' || deletingAccount()"
+            (click)="deleteAccount()">
+            {{ deletingAccount() ? 'Eliminando...' : 'Eliminar permanentemente' }}
+        </button>
+        </div>
+    </div>
+    </div>
+}
+</div>

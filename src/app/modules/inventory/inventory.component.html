@@ -1,0 +1,252 @@
+<div class="page">  
+    <div class="page-header">
+    <div>
+        <h1 class="page-title">Inventario</h1>
+        <p class="page-sub">{{ total() }} productos registrados</p>
+    </div>
+    <button class="btn-primary" (click)="openModal()">+ Nuevo producto</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+    <input type="search" [(ngModel)]="searchQuery" (ngModelChange)="onSearch()"
+        placeholder="Buscar productos..." class="search-input">
+    <select [(ngModel)]="selectedCategory" (ngModelChange)="loadProducts()" class="filter-select">
+        <option value="">Todas las categorías</option>
+        @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.name }}</option>
+        }
+    </select>
+    <label class="filter-check">
+        <input type="checkbox" [(ngModel)]="showLowStock" (ngModelChange)="loadProducts()">
+        Solo stock bajo
+    </label>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-wrap">
+    <table>
+        <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Precio costo</th>
+            <th>Precio venta</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (p of products(); track p.id) {
+            <tr>
+            <td>
+                <div class="product-name">{{ p.name }}</div>
+                @if (p.sku) { <div class="product-sku">{{ p.sku }}</div> }
+            </td>
+            <td><span class="badge">{{ p.category?.name || '—' }}</span></td>
+            <td>{{ p.costPrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td class="price-sale">{{ p.salePrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td>
+                <span class="stock-badge" [class.low]="p.stock <= p.minStock && p.stock > 0"
+                    [class.empty]="p.stock === 0">
+                    {{ p.stock | number:'1.0-0' }} {{ p.unit }}
+                </span>
+            </td>
+            <td>
+                <span class="status" [class.active]="p.isActive" [class.inactive]="!p.isActive">
+                {{ p.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+            </td>
+            <td>
+                <button class="action-btn" (click)="openModal(p)">
+                <img src="./../../../assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                </button>
+                <button class="action-btn del" (click)="deleteProduct(p.id)">
+                <img src="./../../../assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                </button>
+            </td>
+            </tr>
+        }
+        @if (products().length === 0 && !loading()) {
+            <tr><td colspan="7" class="empty-row">No hay productos. ¡Agrega el primero!</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- Modal -->
+@if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+        <h3>{{ editingProduct() ? 'Editar producto' : 'Nuevo producto' }}</h3>
+        <button (click)="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+        <div class="field-row">
+            <div class="field">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="form.name" placeholder="Nombre del producto">
+            </div>
+            <div class="field">
+            <label>SKU / Código</label>
+            <input type="text" [(ngModel)]="form.sku" placeholder="Opcional">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+            <label>Precio costo (COP)</label>
+            <input type="text" [value]="formatNum(form.costPrice)"
+            (input)="form.costPrice = parseNum($any($event.target).value)"
+            placeholder="0">
+            </div>
+            <div class="field">
+            <label>Precio venta (COP) *</label>
+            <input type="text" [value]="formatNum(form.salePrice)"
+            (input)="form.salePrice = parseNum($any($event.target).value)"
+            placeholder="0">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+            <label>Stock actual</label>
+            <input type="text" [value]="formatNum(form.stock)"
+            (input)="form.stock = parseNum($any($event.target).value)"
+            placeholder="0">
+            </div>
+            <div class="field">
+            <label>Stock mínimo (alerta)</label>
+            <input type="text" [value]="formatNum(form.minStock)"
+            (input)="form.minStock = parseNum($any($event.target).value)"
+            placeholder="0">
+            </div>
+        </div>
+        <div class="field-row">
+            <div class="field">
+            <label>Unidad</label>
+            <select [(ngModel)]="form.unit">
+                <option value="unit">Unidad</option>
+                <option value="kg">Kilogramo (kg)</option>
+                <option value="gram">Gramo (g)</option>
+                <option value="liter">Litro (L)</option>
+                <option value="meter">Metro (m)</option>
+            </select>
+            </div>
+            <div class="field">
+            <label>Categoría</label>
+            <div class="cat-row">
+                <select [(ngModel)]="form.categoryId">
+                <option value="">Sin categoría</option>
+                @for (cat of categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                }
+                </select>
+                <button type="button" class="btn-new-cat" (click)="showCatManager.set(!showCatManager())">
+                ⚙️ Gestionar
+                </button>
+            </div>
+
+            @if (showCatManager()) {
+                <div class="cat-manager">
+                <!-- Lista de categorías existentes -->
+                @for (cat of categories(); track cat.id) {
+                    <div class="cat-item">
+                    @if (editingCat()?.id === cat.id) {
+                        <!-- Modo edición -->
+                        <input type="text" [(ngModel)]="editingCatName" class="cat-edit-input">
+                        <div class="cat-colors-mini">
+                        @for (c of catColors; track c) {
+                            <button type="button" class="cat-color-swatch"
+                            [style.background]="c"
+                            [class.active]="editingCatColor === c"
+                            (click)="editingCatColor = c">
+                            </button>
+                        }
+                        </div>
+                        <button type="button" class="cat-action save" (click)="saveEditCategory()">✓</button>
+                        <button type="button" class="cat-action cancel" (click)="editingCat.set(null)">✕</button>
+                    } @else {
+                        <!-- Modo vista -->
+                        <div class="cat-dot" [style.background]="cat.color || '#6366f1'"></div>
+                        <span class="cat-item-name">{{ cat.name }}</span>
+                        <button type="button" class="cat-action edit" (click)="startEditCategory(cat)">
+                        <img src="./../../../assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                        </button>
+                        <button type="button" class="cat-action del" (click)="deleteCategory(cat)">
+                        <img src="./../../../assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                        </button>
+                    }
+                    </div>
+                }
+                @if (categories().length === 0) {
+                    <div class="cat-empty">No hay categorías aún</div>
+                }
+
+                <!-- Formulario nueva categoría -->
+                <div class="new-cat-form">
+                    <input type="text" [(ngModel)]="newCatName" placeholder="Nueva categoría...">
+                    <div class="cat-colors-mini">
+                    @for (c of catColors; track c) {
+                        <button type="button" class="cat-color-swatch"
+                        [style.background]="c"
+                        [class.active]="newCatColor === c"
+                        (click)="newCatColor = c">
+                        </button>
+                    }
+                    </div>
+                    <button type="button" class="btn-save-cat" [style.background]="newCatColor"
+                    [disabled]="!newCatName.trim()" (click)="createCategory()">
+                    + Crear
+                    </button>
+                </div>
+                </div>
+            }
+            </div>
+        </div>
+        <div class="field">
+            <label>Descripción</label>
+            <input type="text" [(ngModel)]="form.description" placeholder="Opcional">
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="saving()" (click)="saveProduct()">
+            {{ saving() ? 'Guardando...' : (editingProduct() ? 'Actualizar' : 'Crear producto') }}
+        </button>
+        </div>
+    </div>
+    </div>
+}
+
+<!-- Modal confirmar eliminar -->
+@if (productToDelete()) {
+    <div class="modal-overlay" (click)="productToDelete.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">
+        <img src="assets/icon/delete.svg" alt="Eliminar" width="22" height="22">
+        </div>
+        <h3>¿Eliminar producto?</h3>
+        <p>Esta acción no se puede deshacer.</p>
+        <div class="confirm-actions">
+        <button class="btn-cancel" (click)="productToDelete.set(null)">Cancelar</button>
+        <button class="btn-delete" (click)="confirmDelete()">Sí, eliminar</button>
+        </div>
+    </div>
+    </div>
+}
+
+@if (catToDelete()) {
+    <div class="modal-overlay" (click)="catToDelete.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">🗂️</div>
+        <h3>¿Eliminar categoría?</h3>
+        <p>Los productos con esta categoría quedarán sin categoría asignada.</p>
+        <div class="confirm-actions">
+        <button class="btn-cancel" (click)="catToDelete.set(null)">Cancelar</button>
+        <button class="btn-delete" (click)="confirmDeleteCategory()">Sí, eliminar</button>
+        </div>
+    </div>
+    </div>
+}

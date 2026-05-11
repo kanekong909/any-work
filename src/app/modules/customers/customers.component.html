@@ -1,0 +1,105 @@
+<div class="page">
+    <div class="page-header">
+    <div>
+        <h1 class="page-title">Clientes</h1>
+        <p class="page-sub">{{ total() }} clientes registrados</p>
+    </div>
+    <button class="btn-primary" (click)="openModal()">+ Nuevo cliente</button>
+    </div>
+
+    <div class="filters">
+    <input type="search" [(ngModel)]="search" (ngModelChange)="onSearch()"
+        placeholder="Buscar cliente..." class="search-input">
+    </div>
+
+    <div class="table-wrap">
+    <table>
+        <thead>
+        <tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Registrado</th><th></th></tr>
+        </thead>
+        <tbody>
+        @for (c of customers(); track c.id) {
+            <tr>
+            <td class="name-cell">{{ c.name }}</td>
+            <td>{{ c.phone || '—' }}</td>
+            <td>{{ c.email || '—' }}</td>
+            <td>{{ c.address || '—' }}</td>
+            <td>{{ c.createdAt | date:'d MMM yyyy':'':'es' }}</td>
+            <td>
+                <button class="action-btn" (click)="openModal(c)">
+                <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
+                </button>
+                <button class="action-btn del" (click)="toDelete.set(c.id)">
+                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
+                </button>
+            </td>
+            </tr>
+        }
+        @if (customers().length === 0) {
+            <tr><td colspan="6" class="empty-row">No hay clientes registrados</td></tr>
+        }
+        </tbody>
+    </table>
+    </div>
+</div>
+
+@if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+        <h3>{{ editing() ? 'Editar cliente' : 'Nuevo cliente' }}</h3>
+        <button (click)="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+        <div class="field">
+            <label>Nombre *</label>
+            <input type="text" [(ngModel)]="form.name" placeholder="Nombre completo">
+        </div>
+        <div class="field-row">
+            <div class="field">
+            <label>Teléfono</label>
+            <input type="tel" [(ngModel)]="form.phone" placeholder="300 000 0000">
+            </div>
+            <div class="field">
+            <label>Email</label>
+            <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+            </div>
+        </div>
+        <div class="field">
+            <label>Dirección</label>
+            <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
+        </div>
+        <div class="field">
+            <label>Notas</label>
+            <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="saving()" (click)="save()">
+            {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear cliente') }}
+        </button>
+        </div>
+    </div>
+    </div>
+}
+
+@if (toDelete()) {
+    <div class="modal-overlay" (click)="toDelete.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">
+        <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 24px; height: 24px;">
+        </div>
+        <h3>¿Eliminar cliente?</h3>
+        <p>Esta acción no se puede deshacer.</p>
+        <div class="confirm-actions">
+        <button class="btn-cancel" (click)="toDelete.set(null)">Cancelar</button>
+        <button class="btn-delete" (click)="confirmDelete()">Sí, eliminar</button>
+        </div>
+    </div>
+    </div>
+}
+
+@if (toast()) {
+    <div class="toast">{{ toast() }}</div>
+}

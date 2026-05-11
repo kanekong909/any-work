@@ -1,0 +1,46 @@
+<div class="auth-card">
+    <h1 class="auth-title">Crea tu cuenta</h1>
+    <p class="auth-subtitle">Empieza gratis, sin tarjeta de crédito</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <div class="field">
+        <label>Tu nombre</label>
+        <input type="text" formControlName="name" placeholder="Juan Pérez"
+        [class.error]="form.get('name')?.invalid && form.get('name')?.touched">
+    </div>
+    <div class="field">
+        <label>Nombre de tu negocio</label>
+        <input type="text" formControlName="businessName" placeholder="Panadería El Buen Pan"
+        [class.error]="form.get('businessName')?.invalid && form.get('businessName')?.touched">
+    </div>
+    <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" formControlName="email" placeholder="tu@correo.com"
+        [class.error]="form.get('email')?.invalid && form.get('email')?.touched">
+    </div>
+    <div class="field">
+        <label>Contraseña</label>
+        <div class="input-group">
+        <input [type]="showPass() ? 'text' : 'password'" formControlName="password" 
+            placeholder="Mínimo 8 caracteres"
+            [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
+        <button type="button" class="toggle-pass" (click)="showPass.set(!showPass())">
+            {{ showPass() ? '🙈' : '👁️' }}
+        </button>
+        </div>
+        <span class="field-hint">Debe tener mayúscula y número</span>
+    </div>
+
+    @if (errorMsg()) {
+        <div class="alert-error">{{ errorMsg() }}</div>
+    }
+
+    <button type="submit" class="btn-primary" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> } @else { Crear cuenta gratis }
+    </button>
+    </form>
+
+    <p class="auth-link">
+    ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
+    </p>
+</div>

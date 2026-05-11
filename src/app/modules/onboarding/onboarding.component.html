@@ -1,0 +1,214 @@
+<div class="onboarding-shell">
+    <!-- Header -->
+    <header class="ob-header">
+    <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+        <rect width="36" height="36" rx="10" fill="var(--brand-primary)"/>
+        <path d="M10 18L16 24L26 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>NexoAdmin</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPct()"></div>
+    </div>
+    <span class="step-counter">{{ currentStep() }}/{{ totalSteps }}</span>
+    </header>
+
+    <main class="ob-main">
+    <!-- Paso 1: Tipo de negocio -->
+    @if (currentStep() === 1) {
+        <div class="step-content" [@stepAnim]>
+        <h2 class="step-title">¿Cuál es tu tipo de negocio?</h2>
+        <p class="step-desc">Adaptaremos la app a tus necesidades específicas</p>
+        <div class="business-grid">
+            @for (type of businessTypes; track type.value) {
+            <button class="biz-card" [class.selected]="selectedBusinessType() === type.value"
+                [style.--card-color]="type.color"
+                (click)="selectBusinessType(type.value)">
+                <span class="biz-icon">{{ type.icon }}</span>
+                <span class="biz-label">{{ type.label }}</span>
+                @if (selectedBusinessType() === type.value) {
+                <span class="check-badge">✓</span>
+                }
+            </button>
+            }
+        </div>
+        </div>
+    }
+
+    <!-- Paso 2: Datos del negocio -->
+    @if (currentStep() === 2) {
+        <div class="step-content">
+        <h2 class="step-title">Cuéntanos sobre tu negocio</h2>
+        <p class="step-desc">Esta información aparecerá en tus reportes y facturas</p>
+        <form [formGroup]="infoForm" class="info-form">
+            <div class="field-row">
+            <div class="field">
+                <label>Nombre del negocio *</label>
+                <input type="text" formControlName="businessName" placeholder="Ej: Panadería Don Luis">
+            </div>
+            <div class="field">
+                <label>Ciudad</label>
+                <input type="text" formControlName="city" placeholder="Ej: Barranquilla">
+            </div>
+            </div>
+            <div class="field-row">
+            <div class="field">
+                <label>Teléfono / WhatsApp</label>
+                <input type="tel" formControlName="phone" placeholder="300 000 0000">
+            </div>
+            <div class="field">
+                <label>NIT o Cédula</label>
+                <input type="text" formControlName="taxId" placeholder="Opcional">
+            </div>
+            </div>
+        </form>
+        </div>
+    }
+
+    <!-- Paso 3: Módulos -->
+    @if (currentStep() === 3) {
+        <div class="step-content">
+        <h2 class="step-title">¿Qué quieres gestionar?</h2>
+        <p class="step-desc">Selecciona los módulos que usarás en tu negocio</p>
+        <div class="modules-grid">
+            @for (mod of modules; track mod.key) {
+            <button class="module-card" [class.selected]="selectedModules().has(mod.key)"
+                (click)="toggleModule(mod.key)">
+                <span class="mod-icon">{{ mod.icon }}</span>
+                <div class="mod-info">
+                <span class="mod-label">{{ mod.label }}</span>
+                <span class="mod-desc">{{ mod.desc }}</span>
+                </div>
+                <span class="mod-check">{{ selectedModules().has(mod.key) ? '✓' : '+' }}</span>
+            </button>
+            }
+        </div>
+        </div>
+    }
+
+    <!-- Paso 4: Personalización visual -->
+    @if (currentStep() === 4) {
+        <div class="step-content">
+        <h2 class="step-title">Personaliza los colores</h2>
+        <p class="step-desc">Elige el color que representa a tu negocio</p>
+
+        <div class="color-section">
+            <label class="color-label">Color principal</label>
+            <div class="color-palette">
+            @for (color of colorPalette; track color) {
+                <button class="color-swatch"
+                [style.background]="color"
+                [class.active]="primaryColor() === color"
+                (click)="setPrimaryColor(color)">
+                @if (primaryColor() === color) { <span>✓</span> }
+                </button>
+            }
+            <label class="color-custom" [style.background]="primaryColor()">
+                <input type="color" [value]="primaryColor()" (input)="setPrimaryColor($any($event.target).value)">
+                🎨
+            </label>
+            </div>
+        </div>
+
+        <div class="color-section">
+            <label class="color-label">Color de acento</label>
+            <div class="color-palette">
+            @for (color of colorPalette; track color) {
+                <button class="color-swatch"
+                [style.background]="color"
+                [class.active]="accentColor() === color"
+                (click)="setAccentColor(color)">
+                @if (accentColor() === color) { <span>✓</span> }
+                </button>
+            }
+            </div>
+        </div>
+
+        <div class="theme-toggle">
+            <span>Tema:</span>
+            <button class="theme-btn" [class.active]="colorTheme() === 'light'" (click)="colorTheme.set('light')">☀️ Claro</button>
+            <button class="theme-btn" [class.active]="colorTheme() === 'dark'" (click)="colorTheme.set('dark')">🌙 Oscuro</button>
+        </div>
+
+        <!-- Preview -->
+        <div class="preview-card" [style.border-color]="primaryColor()">
+            <div class="preview-header" [style.background]="primaryColor()">
+            <span>Vista previa</span>
+            </div>
+            <div class="preview-body">
+            <div class="preview-btn" [style.background]="primaryColor()">Botón principal</div>
+            <div class="preview-badge" [style.background]="accentColor() + '22'" [style.color]="accentColor()">Etiqueta</div>
+            </div>
+        </div>
+        </div>
+    }
+
+    <!-- Paso 5: Usuarios -->
+    @if (currentStep() === 5) {
+        <div class="step-content">
+        <h2 class="step-title">¿Cuántas personas usarán la app?</h2>
+        <p class="step-desc">Puedes agregar más usuarios luego desde Configuración</p>
+        <div class="team-options">
+            @for (opt of teamOptions; track opt.value) {
+            <button class="team-card" [class.selected]="teamSize() === opt.value"
+                (click)="teamSize.set(opt.value)">
+                <span class="team-icon">{{ opt.icon }}</span>
+                <div>
+                <div class="team-label">{{ opt.label }}</div>
+                <div class="team-desc">{{ opt.desc }}</div>
+                </div>
+            </button>
+            }
+        </div>
+        </div>
+    }
+
+    <!-- Paso 6: ¡Listo! -->
+    @if (currentStep() === 6) {
+        <div class="step-content step-final">
+        <div class="success-icon" [style.background]="primaryColor() + '22'">
+            <span [style.color]="primaryColor()">🎉</span>
+        </div>
+        <h2 class="step-title">¡Todo listo!</h2>
+        <p class="step-desc">Tu negocio está configurado. Puedes empezar a usar NexoAdmin ahora.</p>
+        <div class="summary-card">
+            <div class="summary-item">
+            <span class="summary-key">Negocio</span>
+            <span class="summary-val">{{ infoForm.value.businessName }}</span>
+            </div>
+            <div class="summary-item">
+            <span class="summary-key">Tipo</span>
+            <span class="summary-val">{{ getBusinessTypeLabel() }}</span>
+            </div>
+            <div class="summary-item">
+            <span class="summary-key">Módulos</span>
+            <span class="summary-val">{{ selectedModules().size }} activos</span>
+            </div>
+            <div class="summary-item">
+            <span class="summary-key">Plan</span>
+            <span class="summary-val plan-badge">Free — Activo</span>
+            </div>
+        </div>
+        </div>
+    }
+
+    <!-- Navegación -->
+    <div class="ob-nav">
+        @if (currentStep() > 1) {
+        <button class="btn-back" (click)="prevStep()">← Atrás</button>
+        }
+        @if (currentStep() < totalSteps) {
+        <button class="btn-next" [style.background]="primaryColor()"
+            [disabled]="!canProceed()" (click)="nextStep()">
+            Continuar →
+        </button>
+        } @else {
+        <button class="btn-next" [style.background]="primaryColor()"
+            [disabled]="loading()" (click)="finish()">
+            @if (loading()) { <span class="spinner"></span> } @else { Ir al Dashboard →}
+        </button>
+        }
+    </div>
+    </main>
+</div>

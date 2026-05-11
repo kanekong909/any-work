@@ -1,0 +1,159 @@
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Gastos</h1>
+          <p class="page-sub">Total este mes: <strong>{{ sum() | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></p>
+        </div>
+        <button class="btn-primary" (click)="openModal()">+ Registrar gasto</button>
+      </div>
+
+      <div class="filters">
+        <select [(ngModel)]="filterMonth" (ngModelChange)="loadExpenses()" class="filter-select">
+          @for (m of months; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+        <select [(ngModel)]="filterCategory" (ngModelChange)="loadExpenses()" class="filter-select">
+          <option value="">Todas las categorías</option>
+          @for (c of categoryOptions; track c.value) {
+            <option [value]="c.value">{{ c.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th>Proveedor</th> 
+              <th>Categoría</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th style="width: 120px; text-align: right; padding-right: 1.5rem;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of expenses(); track e.id) {
+              <tr>
+                <td>
+                  <div class="exp-desc" [style.opacity]="expenseToDelete() === e.id ? '0.4' : '1'">{{ e.description }}</div>
+                  @if (e.notes) { <div class="exp-notes">{{ e.notes }}</div> }
+                </td>
+                
+                <td>
+                  @if (e.supplier) {
+                    <div class="exp-supplier">🏭 {{ e.supplier.name }}</div>
+                  } @else {
+                    <span style="color: var(--text-secondary); font-size: 0.85rem;">-</span>
+                  }
+                </td>
+
+                <td><span class="badge cat-badge">{{ getCatLabel(e.category) }}</span></td>
+                <td class="date-cell">{{ e.date | date:'d MMM yyyy':'':'es' }}</td>
+                <td class="amount-cell" style="font-weight: 600;">{{ e.amount | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                <td style="text-align: right; padding-right: 1.5rem;">
+                  
+                  @if (expenseToDelete() === e.id) {
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                      <span style="font-size: 0.75rem; color: #ef4444; font-weight: 600;">¿Borrar?</span>
+                      <button style="background:none; border:none; cursor:pointer; color:#10b981; font-weight:bold; padding:4px;" (click)="confirmDeleteExpense()">✓</button>
+                      <button style="background:none; border:none; cursor:pointer; color:#ef4444; font-weight:bold; padding:4px;" (click)="cancelDelete()">✕</button>
+                    </div>
+                  } @else {
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                      <button style="background:none; border:none; cursor:pointer; padding:4px; display:inline-flex;" (click)="openModal(e)" title="Editar gasto">
+                        <img src="assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                      </button>
+                      <button style="background:none; border:none; cursor:pointer; padding:4px; display:inline-flex;" (click)="prepareDelete(e.id)" title="Eliminar gasto">
+                        <img src="assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                      </button>
+                    </div>
+                  }
+
+                </td>
+              </tr>
+            }
+            @if (expenses().length === 0) {
+              <tr><td colspan="6" class="empty-row">No hay gastos registrados este mes</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    @if (showModal()) {
+      <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>{{ editingExpenseId() ? 'Editar gasto' : 'Registrar gasto' }}</h3>
+            <button (click)="closeModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="field">
+              <label>Descripción *</label>
+              <input type="text" [(ngModel)]="form.description" placeholder="Ej: Compra de harina x50kg">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Monto (COP) *</label>
+                <input type="number" [(ngModel)]="form.amount" min="0">
+              </div>
+              <div class="field">
+                <label>Fecha *</label>
+                <input type="date" [(ngModel)]="form.date">
+              </div>
+            </div>
+            <div class="field">
+              <label>Categoría</label>
+              <select [(ngModel)]="form.category">
+                @for (c of categoryOptions; track c.value) {
+                  <option [value]="c.value">{{ c.label }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- BUSCADOR PREDICTIVO INTERACTIVO DE PROVEEDORES -->
+            <div class="field pos-customer-search">
+              <label>Proveedor (Opcional)</label>
+              <div class="input-wrapper">
+                <input type="text" 
+                      [ngModel]="supplierSearch()" 
+                      (ngModelChange)="supplierSearch.set($event); searchSuppliers()"
+                      placeholder="Buscar proveedor registrado..." 
+                      class="search-input"
+                      [disabled]="selectedSupplier() !== null">
+                
+                @if (selectedSupplier()) {
+                  <!-- CORRECCIÓN: Fuerza el type="button" para evitar que el botón envíe el formulario por accidente -->
+                  <button type="button" class="clear-btn" (click)="clearSupplier()">✕</button>
+                }
+              </div>
+
+              @if (supplierResults().length > 0) {
+                <div class="search-dropdown">
+                  @for (s of supplierResults(); track s.id) {
+                    <!-- CORRECCIÓN: Fuerza el type="button" para evitar cierres erráticos del modal -->
+                    <button type="button" class="search-item" (click)="selectSupplier(s)">
+                      {{ s.name }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="field">
+              <label>Notas (opcional)</label>
+              <input type="text" [(ngModel)]="form.notes" placeholder="Detalle adicional...">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button class="btn-primary" [disabled]="saving()" (click)="saveExpense()">
+              {{ saving() ? 'Guardando...' : (editingExpenseId() ? 'Guardar cambios' : 'Registrar gasto') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }

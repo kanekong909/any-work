@@ -1,0 +1,756 @@
+.page {
+    max-width: 1100px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+}
+
+.page-sub {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover td {
+    background: var(--bg-hover);
+}
+
+.sale-num {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.pay-badge {
+    background: var(--brand-primary-10);
+    color: var(--brand-primary);
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.amount {
+    font-weight: 700;
+}
+
+.time {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.empty-row {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 3rem !important;
+}
+
+/* POS */
+/* POS */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.pos-modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pos-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pos-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.pos-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Contenedores de búsqueda unificados (Productos y Clientes) */
+.pos-search,
+.pos-customer-search {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    border-color: var(--brand-primary);
+}
+
+/* Dropdown unificado */
+.search-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    z-index: 210;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.search-item:last-child {
+    border-bottom: none;
+}
+
+.search-item:hover {
+    background: var(--bg-hover);
+}
+
+/* Detalles específicos de ítems del dropdown */
+.si-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.si-stock {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.si-price {
+    font-weight: 600;
+    color: var(--brand-primary);
+    font-size: 0.875rem;
+}
+
+/* Estilos específicos para la píldora secundaria del Cliente */
+.ci-subtext {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 2px;
+}
+
+.search-input:disabled {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: not-allowed;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px 6px;
+    border-radius: 50%;
+}
+
+.action-btn:hover {
+    background: rgba(50, 197, 5, 0.31);
+}
+
+.action-btn.del:hover {
+    background: rgba(219, 3, 3, 0.31);
+}
+
+/* Carrito, Totales y Footer (Se mantienen igual) */
+.cart {
+    min-height: 80px;
+}
+
+.cart-empty {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.cart-empty span {
+    font-size: 1.75rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.cart-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.ci-name {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.ci-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ci-controls button {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-page);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ci-controls span {
+    min-width: 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.ci-price {
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 90px;
+    text-align: right;
+}
+
+.ci-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 4px;
+}
+
+.ci-remove:hover {
+    color: #ef4444;
+}
+
+.pos-totals {
+    background: var(--bg-page);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.375rem 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.total-final {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+}
+
+.discount-input {
+    width: 100px;
+    padding: 0.35rem 0.6rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 7px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    text-align: right;
+    outline: none;
+}
+
+.pos-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+select,
+input[type="text"] {
+    padding: 0.65rem 0.875rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    outline: none;
+}
+
+.pos-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel {
+    background: none;
+    border: 1.5px solid var(--border-color);
+    padding: 0.7rem 1.25rem;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.modal-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel {
+    background: none;
+    border: 1.5px solid var(--border-color);
+    padding: 0.6rem 1.25rem;
+    border-radius: 9px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.confirm-modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.confirm-modal h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.confirm-modal p {
+    margin: 0 0 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+/* SELECTORES DE FECHA */
+/* Contenedor de la barra de filtros */
+.filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    background: #ffffff;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group-row {
+    display: flex;
+    gap: 12px;
+}
+
+.search-group {
+    flex: 1;
+    min-width: 260px;
+}
+
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 0.9rem;
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.filter-input {
+    width: 100%;
+    height: 40px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #111827;
+    transition: all 0.2s ease;
+}
+
+.input-search {
+        width: 100%;
+    height: 40px;
+    padding: 8px 12px 8px 36px !important; /* El '36px' empuja el texto a la derecha para que no toque la lupa */
+    font-size: 0.875rem;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    color: #111827;
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.btn-clear-filters {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #ef4444;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Estilos de Paginación */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 4px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-btn {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.pagination-btn:hover:not([disabled]) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.pagination-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f3f4f6;
+}
+
+.page-num-btn {
+    min-width: 36px;
+    padding: 0;
+}
+
+.page-num-btn.active {
+    background: #6366f1;
+    color: #ffffff;
+    border-color: #6366f1;
+}
+
+.actions-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+/* ANGULAR MATERIAL */
+/* Integración del Datepicker en la barra de filtros */
+.date-range-group {
+    min-width: 280px;
+}
+
+.custom-datepicker {
+    width: 100%;
+}
+
+/* Forzar la misma altura (40px) de tu buscador para que se vean simétricos */
+::v-deep .custom-datepicker .mat-mdc-text-field-wrapper {
+    height: 40px !important;
+    background-color: #f9fafb !important;
+    border-radius: 8px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Ocultar la línea interna sobrante de Material */
+::v-deep .custom-datepicker .mdc-notched-outline__leading,
+::v-deep .custom-datepicker .mdc-notched-outline__notation,
+::v-deep .custom-datepicker .mdc-notched-outline__trailing {
+    border-color: #d1d5db !important;
+}
+
+/* Efecto Focus usando el color principal */
+::v-deep .custom-datepicker.mat-focused .mdc-notched-outline__leading,
+::v-deep .custom-datepicker.mat-focused .mdc-notched-outline__notation,
+::v-deep .custom-datepicker.mat-focused .mdc-notched-outline__trailing {
+    border-color: #6366f1 !important;
+    border-width: 2px !important;
+}
+
+/* Estilo del texto interior */
+::v-deep .custom-datepicker input {
+    font-size: 0.875rem !important;
+    color: #111827 !important;
+}
+
+/* Icono del calendario */
+::v-deep .custom-datepicker .mat-mdc-form-field-icon-suffix {
+    color: #9ca3af !important;
+}

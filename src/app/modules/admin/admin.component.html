@@ -1,0 +1,90 @@
+<div class="page">
+    <h1 class="page-title">🛡️ Panel Admin</h1>
+
+    <div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-val">{{ stats()?.totalTenants }}</div>
+        <div class="stat-label">Negocios totales</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val">{{ stats()?.activeTenants }}</div>
+        <div class="stat-label">Activos</div>
+    </div>
+    <div class="stat-card warn">
+        <div class="stat-val">{{ stats()?.pendingPayments }}</div>
+        <div class="stat-label">Pagos pendientes</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val">{{ stats()?.totalUsers }}</div>
+        <div class="stat-label">Admins registrados</div>
+    </div>
+    </div>
+
+    <div class="section">
+    <h2 class="section-title">Pagos pendientes de verificación</h2>
+    @if (pendingPayments().length === 0) {
+        <div class="empty">✅ No hay pagos pendientes</div>
+    } @else {
+        <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Negocio</th><th>Plan</th><th>Método</th>
+                <th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            @for (sub of pendingPayments(); track sub.id) {
+                <tr>
+                <td class="biz-name">{{ sub.tenant?.businessName }}</td>
+                <td><span class="badge">{{ sub.plan.displayName }}</span></td>
+                <td>{{ sub.paymentMethod }}</td>
+                <td>{{ sub.amountPaid | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                <td>{{ sub.createdAt | date:'d MMM, h:mm a':'':'es' }}</td>
+                <td class="actions">
+                    <button class="btn-activate" (click)="activate(sub)">✓ Activar</button>
+                    <button class="btn-reject" (click)="reject(sub)">✕ Rechazar</button>
+                </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+    </div>
+
+    <div class="section">
+    <h2 class="section-title">Todos los negocios</h2>
+    <div class="table-wrap">
+        <table>
+        <thead>
+            <tr>
+            <th>Negocio</th><th>Tipo</th><th>Estado</th>
+            <th>Registrado</th><th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (t of tenants(); track t.id) {
+            <tr>
+                <td>
+                <div class="biz-name">{{ t.businessName }}</div>
+                <div class="biz-slug">{{ t.slug }}</div>
+                </td>
+                <td>{{ t.businessType }}</td>
+                <td><span class="status-badge" [class]="t.status">{{ t.status }}</span></td>
+                <td>{{ t.createdAt | date:'d MMM yyyy':'':'es' }}</td>
+                <td class="actions">
+                @if (t.status === 'active') {
+                    <button class="btn-suspend" (click)="updateStatus(t, 'suspended')">Suspender</button>
+                }
+                @if (t.status === 'suspended' || t.status === 'pending') {
+                    <button class="btn-activate" (click)="updateStatus(t, 'active')">Activar</button>
+                }
+                </td>
+            </tr>
+            }
+        </tbody>
+        </table>
+    </div>
+    </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+    <!-- Overlay mobile -->
+    @if (mobileOpen()) {
+    <div class="overlay" (click)="mobileOpen.set(false)"></div>
+    }
+
+    <!-- Sidebar -->
+    <aside class="sidebar" [class.mobile-open]="mobileOpen()">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+        <div class="brand-icon-wrap">
+            @if (tenant()?.logoUrl) {
+            <img [src]="getLogoUrl(tenant()!.logoUrl!)" alt="Logo" class="brand-logo-img">
+            } @else {
+            <div class="brand-icon" [style.background]="tenant()?.primaryColor || '#6366f1'">
+                <svg width="18" height="18" viewBox="0 0 36 36" fill="none">
+                <path d="M10 18L16 24L26 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            }
+        </div>
+        @if (!sidebarCollapsed()) {
+            <div class="brand-text">
+            <span class="brand-name">{{ tenant()?.businessName || 'NexoAdmin' }}</span>
+            <span class="brand-type">{{ getBusinessTypeLabel() }}</span>
+            </div>
+        }
+        </div>
+        <button class="collapse-btn" (click)="sidebarCollapsed.set(!sidebarCollapsed())">
+        {{ sidebarCollapsed() ? '→' : '←' }}
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        @for (item of navItems(); track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active" class="nav-item"
+            (click)="mobileOpen.set(false)">
+            <!-- Cambia esto -->
+            <img [src]="item.icon" alt="{{ item.label }}" class="nav-icon" width="20" height="20">
+            
+            @if (!sidebarCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+            @if (item.badge) { <span class="nav-badge">{{ item.badge }}</span> }
+            }
+        </a>
+        }
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+        <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
+            {{ userInitial() }}
+        </div>
+        @if (!sidebarCollapsed()) {
+            <div class="user-info">
+            <span class="user-name">{{ user()?.name }}</span>
+            <span class="user-role">{{ getRoleLabel() }}</span>
+            </div>
+            <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+                <img src="/assets/icons/logout.svg" alt="Cerrar sesión" style="width: 20px;">
+            </button>
+        }
+        </div>
+    </div>
+    </aside>
+
+    <!-- Main content -->
+    <div class="main-wrap">
+    <!-- Topbar mobile -->
+    <header class="topbar">
+        <button class="hamburger" (click)="mobileOpen.set(true)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Meteor Icons by zkreations - https://github.com/zkreations/icons/blob/main/LICENSE --><path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h8M3 12h18M8 18h8"/></svg>
+        </button>
+        <div class="topbar-brand">{{ tenant()?.businessName || 'NexoAdmin' }}</div>
+        <div class="topbar-user">{{ userInitial() }}</div>
+    </header>
+
+    <main class="main-content">
+        <router-outlet />
+    </main>
+    </div>
+</div>

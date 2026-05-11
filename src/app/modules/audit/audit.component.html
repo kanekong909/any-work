@@ -1,0 +1,32 @@
+<div class="page">
+    <h1 class="page-title">Historial de Auditoría</h1>
+    <p class="page-desc">Monitorea en tiempo real los movimientos, ediciones y eliminaciones de tu equipo.</p>
+
+    <div class="card spec-card">
+    <div class="timeline">
+        @for (log of logs(); track log.id) {
+        <div class="timeline-item" [class]="'action-' + log.action.toLowerCase()">
+            <div class="action-badge">
+            @switch (log.action) {
+                @case ('CREATE') { ➕ }
+                @case ('UPDATE') { 📝 }
+                @case ('DELETE') { 🗑️ }
+                @case ('LOGIN')  { 🔑 }
+            }
+            </div>
+            <div class="timeline-content">
+            <div class="timeline-header">
+                <strong class="user-trigger">{{ log.userName }}</strong>
+                <span class="module-tag">{{ getModuleLabel(log.module) }}</span>
+                <span class="timeline-date">{{ log.createdAt | date:'dd/MM/yyyy' }}</span>
+                <span class="timeline-time">{{ log.createdAt | date:'h:mm a' }}</span>
+            </div>
+            <p class="timeline-desc">{{ log.description }}</p>
+            </div>
+        </div>
+        } @empty {
+        <div class="empty-state">No se registran movimientos en el sistema aún.</div>
+        }
+    </div>
+    </div>
+</div>

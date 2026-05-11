@@ -1,0 +1,323 @@
+<div class="page">
+  <div class="page-header">
+      <div>
+        <h1 class="page-title">Ventas</h1>
+        <p class="page-sub">Total hoy: <strong>{{ todayRevenue() | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></p>
+      </div>
+      <button class="btn-primary" (click)="openPOS()">+ Nueva venta</button>
+  </div>
+
+  <!-- NUEVA BARRA DE FILTROS AVANZADA Y ESTILIZADA -->
+  <div class="filters-bar">
+      <div class="filter-group search-group">
+          <label class="filter-label">Buscar Transacción</label>
+          <div class="input-icon-wrap">
+              <span class="input-icon">
+                <img src="/assets/icons/search.svg" alt="Buscar" style="width: 16px;">
+              </span>
+              <input type="text" 
+                     [value]="searchTerm()" 
+                     (input)="onSearchChange($any($event.target).value)"
+                     placeholder="N° venta, cliente..." 
+                     class="filter-input input-search">
+          </div>
+      </div>
+
+      <div class="filter-group-row">
+          <div class="filter-group">
+              <label class="filter-label">Desde</label>
+              <input type="date" 
+                     [ngModel]="startDate()" 
+                     (ngModelChange)="startDate.set($event); onDateFilterChange()" 
+                     class="filter-input">
+          </div>
+          <div class="filter-group">
+              <label class="filter-label">Hasta</label>
+              <input type="date" 
+                     [ngModel]="endDate()" 
+                     (ngModelChange)="endDate.set($event); onDateFilterChange()" 
+                     class="filter-input">
+          </div>
+      </div>
+
+      @if (searchTerm() || startDate() || endDate()) {
+          <button class="btn-clear-filters" (click)="clearFilters()">
+              Limpiar Filtros
+          </button>
+      }
+  </div>
+
+  <!-- Historial de Tabla -->
+  <div class="table-wrap">
+      <table>
+      <thead>
+          <tr>
+          <th># Venta</th>
+          <th>Cliente</th>
+          <th>Pago</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>Acciones</th>
+          </tr>
+      </thead>
+      <tbody>
+          @for (s of sales(); track s.id) {
+          <tr>
+              <td class="sale-num">{{ s.saleNumber }}</td>
+              <td>{{ s.customerName || 'General' }}</td>
+              <td><span class="pay-badge">{{ getPayLabel(s.paymentType) }}</span></td>
+              <td>{{ s.items.length || 0 }} items</td>
+              <td class="amount">{{ s.total | currency:'COP':'$':'1.0-0' }}</td>
+              <td class="date">{{ s.createdAt | date:'yyyy-MM-dd' }}</td>
+              <td class="time">{{ s.createdAt | date:'h:mm a' }}</td>
+              <td>
+                <div class="actions-wrapper">
+                  <button class="action-btn" (click)="openEdit(s)">
+                      <img src="assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                  </button>
+                  <button class="action-btn del" (click)="saleToDelete.set(s.id)">
+                      <img src="assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                  </button>
+                </div>
+              </td>
+          </tr>
+          }
+          @if (sales().length === 0) {
+          <tr><td colspan="8" class="empty-row">No se encontraron ventas con los filtros aplicados</td></tr>
+          }
+      </tbody>
+      </table>
+  </div>
+
+  <!-- CONTROL DE PAGINACIÓN INTERACTIVO -->
+  @if (totalPages() > 1) {
+    <div class="pagination-container">
+        <span class="pagination-info">
+            Mostrando página <strong>{{ currentPage() }}</strong> de {{ totalPages() }} ({{ totalItems() }} registros totales)
+        </span>
+        <div class="pagination-buttons">
+            <button class="pagination-btn" 
+                    [disabled]="currentPage() === 1" 
+                    (click)="goToPage(currentPage() - 1)">
+                ◀ Anterior
+            </button>
+            
+            @for (p of [].constructor(totalPages()); track i; let i = $index) {
+                <button class="pagination-btn page-num-btn"
+                        [class.active]="currentPage() === (i + 1)"
+                        (click)="goToPage(i + 1)">
+                    {{ i + 1 }}
+                </button>
+            }
+
+            <button class="pagination-btn" 
+                    [disabled]="currentPage() === totalPages()" 
+                    (click)="goToPage(currentPage() + 1)">
+                Siguiente ▶
+            </button>
+        </div>
+    </div>
+  }
+</div>
+
+
+
+
+<!-- POS Modal -->
+@if (showPOS()) {
+<div class="modal-overlay">
+    <div class="pos-modal">
+        <div class="pos-header">
+            <h3>Nueva venta</h3>
+            <button (click)="closePOS()">✕</button>
+        </div>
+
+        <div class="pos-body">
+            <!-- Buscar producto -->
+            <div class="pos-search">
+                <input type="search" [(ngModel)]="productSearch" (ngModelChange)="searchProducts()"
+                    placeholder="Buscar producto..." class="search-input">
+                @if (searchResults().length > 0) {
+                <div class="search-dropdown">
+                    @for (p of searchResults(); track p.id) {
+                    <button class="search-item" (click)="addToCart(p)">
+                        <span class="si-name">{{ p.name }}</span>
+                        <span class="si-stock">Stock: {{ p.stock | number:'1.0-0' }}</span>
+                        <span class="si-price">{{ p.salePrice | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                    </button>
+                    }
+                </div>
+                }
+            </div>
+
+            <!-- Carrito -->
+            <div class="cart">
+                @if (cart().length === 0) {
+                <div class="cart-empty">
+                    <span>🛒</span>
+                    <p>Agrega productos buscándolos arriba</p>
+                </div>
+                } @else {
+                @for (item of cart(); track item.productId) {
+                <div class="cart-item">
+                    <div class="ci-name">{{ item.productName }}</div>
+                    <div class="ci-controls">
+                        <button (click)="updateQty(item, -1)">−</button>
+                        <span>{{ item.quantity }}</span>
+                        <button (click)="updateQty(item, 1)">+</button>
+                    </div>
+                    <div class="ci-price">{{ (item.unitPrice * item.quantity) | currency:'COP':'symbol-narrow':'1.0-0'
+                        }}</div>
+                    <button class="ci-remove" (click)="removeFromCart(item.productId)">✕</button>
+                </div>
+                }
+                }
+            </div>
+
+            <!-- Totales -->
+            <div class="pos-totals">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span>{{ subtotal() | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                </div>
+                <div class="total-row">
+                    <span>Descuento</span>
+                    <input type="number" [(ngModel)]="discount" min="0" class="discount-input">
+                </div>
+                <div class="total-row total-final">
+                    <span>Total</span>
+                    <span>{{ (subtotal() - discount) | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                </div>
+            </div>
+
+            <!-- Pago y cliente -->
+            <div class="pos-meta">
+                <div class="field">
+                    <label>Forma de pago</label>
+                    <select [(ngModel)]="paymentType">
+                        <option value="cash">Efectivo</option>
+                        <option value="card">Tarjeta</option>
+                        <option value="nequi">Nequi</option>
+                        <option value="transfer">Transferencia</option>
+                        <option value="credit">Fiar</option>
+                    </select>
+                </div>
+
+                <!-- BUSCADOR DE CLIENTES REGISTRADOS -->
+                <div class="field pos-customer-search" style="position: relative;">
+                    <label>Cliente (opcional)</label>
+                    <div style="display: flex; position: relative; align-items: center;">
+                        <input type="text" [ngModel]="customerSearch()"
+                            (ngModelChange)="customerSearch.set($event); searchCustomers()"
+                            placeholder="Buscar cliente por nombre..." class="search-input"
+                            [disabled]="selectedCustomer() !== null">
+
+                        @if (selectedCustomer()) {
+                        <button (click)="clearSelectedCustomer()"
+                            style="position: absolute; right: 10px; background: none; border: none; color: #ef4444; cursor: pointer; font-weight: bold;">
+                            ✕
+                        </button>
+                        }
+                    </div>
+
+                    <!-- Resultados del desplegable de clientes -->
+                    @if (customerSearchResults().length > 0) {
+                    <div class="search-dropdown"
+                        style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 1010; background: var(--bg-card, #fff); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; margin-top: 4px; max-height: 200px; overflow-y: auto;">
+                        @for (c of customerSearchResults(); track c.id) {
+                        <button class="search-item" (click)="selectCustomer(c)"
+                            style="display: flex; flex-direction: column; width: 100%; padding: 10px 12px; text-align: left; background: none; border: none; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer;">
+                            <span style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary, #111);">{{
+                                c.name }}</span>
+                            @if (c.phone) {
+                            <span style="font-size: 0.75rem; color: var(--text-secondary, #666);">📱 {{ c.phone
+                                }}</span>
+                            }
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="pos-footer">
+            <button class="btn-cancel" (click)="closePOS()">Cancelar</button>
+            <button class="btn-primary" [disabled]="cart().length === 0 || saving()" (click)="completeSale()">
+                {{ saving() ? 'Procesando...' : 'Completar venta →' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+
+}
+
+<!-- Modal confirmar eliminar -->
+@if (saleToDelete()) {
+<div class="modal-overlay" (click)="saleToDelete.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+        <div class="confirm-icon">🗑️</div>
+        <h3>¿Eliminar venta?</h3>
+        <p>El stock de los productos <strong>no</strong> será devuelto automáticamente.</p>
+        <div class="confirm-actions">
+            <button class="btn-cancel" (click)="saleToDelete.set(null)">Cancelar</button>
+            <button class="btn-delete" (click)="confirmDeleteSale()">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Modal editar venta -->
+@if (saleToEdit()) {
+<div class="modal-overlay" (click)="saleToEdit.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Editar venta {{ saleToEdit()!.saleNumber }}</h3>
+            <button (click)="saleToEdit.set(null)">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="field">
+                <label>Cliente</label>
+                <input type="text" [(ngModel)]="editForm.customerName" placeholder="Cliente general">
+            </div>
+            <div class="field">
+                <label>Forma de pago</label>
+                <select [(ngModel)]="editForm.paymentType">
+                    <option value="cash">Efectivo</option>
+                    <option value="card">Tarjeta</option>
+                    <option value="nequi">Nequi</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="credit">Fiar</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Notas</label>
+                <input type="text" [(ngModel)]="editForm.notes" placeholder="Opcional">
+            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label>Descuento</label>
+                    <input type="text" [value]="formatCOP(editForm.discount)"
+                        (input)="onDiscountChange($any($event.target).value)" placeholder="0">
+                </div>
+                <div class="field">
+                    <label>Total</label>
+                    <input type="text" [value]="formatCOP(editForm.subtotal - (editForm.discount || 0))" disabled
+                        style="opacity: 0.7; cursor: not-allowed; background: var(--bg-hover);">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" (click)="saleToEdit.set(null)">Cancelar</button>
+            <button class="btn-primary" [disabled]="savingEdit()" (click)="saveEdit()">
+                {{ savingEdit() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<app-toast />

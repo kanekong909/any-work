@@ -1,0 +1,56 @@
+<div class="auth-card">
+    <h1 class="auth-title">Bienvenido de vuelta</h1>
+    <p class="auth-subtitle">Ingresa a tu cuenta para continuar</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+        <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" formControlName="email" 
+                   placeholder="tu@correo.com"
+                   autocomplete="email"
+                   [class.error]="form.get('email')?.invalid && form.get('email')?.touched">
+        </div>
+
+        <div class="field">
+            <label>Contraseña</label>
+            <div class="input-group">
+                <input [type]="showPass() ? 'text' : 'password'" 
+                       formControlName="password"
+                       placeholder="••••••••"
+                       autocomplete="current-password"
+                       [class.error]="form.get('password')?.invalid && form.get('password')?.touched">
+                <button type="button" class="toggle-pass" (click)="showPass.set(!showPass())">
+                    {{ showPass() ? '🙈' : '👁️' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- 👈 NUEVO: Checkbox Recordarme -->
+        <div class="field remember-field">
+            <label class="checkbox-label">
+                <input type="checkbox" formControlName="rememberMe">
+                <span class="checkbox-text">Recordarme en este equipo</span>
+            </label>
+        </div>
+
+        @if (errorMsg()) {
+            <div class="alert-error">{{ errorMsg() }}</div>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+            @if (loading()) { 
+                <span class="spinner"></span> 
+            } @else { 
+                Ingresar 
+            }
+        </button>
+    </form>
+
+    <div class="forgot-link">
+        <a routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <p class="auth-link">
+        ¿No tienes cuenta? <a routerLink="/auth/register">Regístrate gratis</a>
+    </p>
+</div>

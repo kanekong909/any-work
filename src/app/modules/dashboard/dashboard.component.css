@@ -1,0 +1,484 @@
+.dashboard {
+    max-width: 1280px;
+    padding: 0.5rem;
+}
+
+/* HEADER */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin: 0 0 0.35rem;
+    line-height: 1.1;
+}
+
+.page-sub {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: capitalize;
+    opacity: 0.85;
+}
+
+/* KPI GRID */
+.kpi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    flex: 1 1 calc(25% - 1rem);
+    min-width: 240px;
+    box-sizing: border-box;
+}
+
+.kpi-card {
+    cursor: grab;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+
+    /* Fondo de la tarjeta */
+    background:
+        linear-gradient(120deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            transparent 100%),
+        var(--bg-card);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+    padding: 1.5rem;
+
+    border-top: 3px solid var(--card-color);
+
+    backdrop-filter: blur(12px);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 10px 30px rgba(0, 0, 0, 0.08);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+            transparent 0%,
+            rgba(0, 0, 0, 0.15) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: linear-gradient(180deg,
+            var(--card-color) 0%,
+            transparent 100%);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.kpi-label,
+.kpi-value,
+.kpi-sub,
+.drag-handle {
+    position: relative;
+    z-index: 2;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        0 20px 40px rgba(0, 0, 0, 0.12);
+
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.kpi-card:active {
+    cursor: grabbing;
+}
+
+.drag-handle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    opacity: 0;
+
+    transition: opacity 0.2s ease;
+
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.kpi-card:hover .drag-handle {
+    opacity: 1;
+}
+
+.kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.9rem;
+}
+
+.kpi-value {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+    line-height: 1;
+}
+
+.kpi-sub {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    opacity: 0.9;
+}
+
+/* Angular CDK */
+.cdk-drag-preview {
+    border-radius: 22px;
+
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.25);
+
+    transform: rotate(2deg);
+
+    overflow: hidden;
+}
+
+.cdk-drag-placeholder {
+    opacity: 0.15;
+}
+
+.cdk-drag-animating {
+    transition: transform 250ms ease;
+}
+
+.kpi-grid.cdk-drop-list-dragging .kpi-card:not(.cdk-drag-placeholder) {
+    transition: transform 250ms ease;
+}
+
+/* GRID */
+.dashboard-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* PANELS */
+.panel {
+    position: relative;
+    overflow: hidden;
+
+    background:
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.03),
+            rgba(255, 255, 255, 0.01)),
+        var(--bg-card);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 24px;
+
+    padding: 1.6rem;
+
+    backdrop-filter: blur(14px);
+
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 10px 30px rgba(0, 0, 0, 0.08);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.panel:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(circle at top,
+            rgba(255, 255, 255, 0.05),
+            transparent 60%);
+
+    pointer-events: none;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 1.5rem;
+}
+
+.panel-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.panel-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    text-decoration: none;
+
+    transition: opacity 0.2s ease;
+}
+
+.panel-link:hover {
+    opacity: 0.7;
+}
+
+/* EMPTY STATE */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-state span {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    margin: 0 0 1.25rem;
+    font-size: 0.92rem;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.75rem 1.1rem;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    background: rgba(255, 255, 255, 0.03);
+
+    color: var(--text-primary);
+
+    text-decoration: none;
+
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+}
+
+/* SALES */
+.sale-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.sale-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    padding: 0.9rem 0.25rem;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    transition: background 0.2s ease;
+}
+
+.sale-item:hover {
+    background: rgba(255, 255, 255, 0.025);
+    border-radius: 12px;
+}
+
+.sale-item:last-child {
+    border-bottom: none;
+}
+
+.sale-num {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    min-width: 70px;
+    font-weight: 600;
+}
+
+.sale-info {
+    flex: 1;
+}
+
+.sale-customer {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.sale-time {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.sale-amount {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+}
+
+/* STOCK */
+.stock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stock-name {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.45rem;
+    font-weight: 600;
+}
+
+.stock-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.stock-bar {
+    flex: 1;
+    height: 8px;
+
+    background: rgba(255, 255, 255, 0.06);
+
+    border-radius: 999px;
+
+    overflow: hidden;
+}
+
+.stock-fill {
+    height: 100%;
+    border-radius: 999px;
+
+    background: linear-gradient(90deg,
+            #10b981,
+            #34d399);
+
+    transition: width 0.35s ease;
+}
+
+.stock-fill.low {
+    background: linear-gradient(90deg,
+            #f59e0b,
+            #fbbf24);
+}
+
+.stock-fill.critical {
+    background: linear-gradient(90deg,
+            #ef4444,
+            #f87171);
+}
+
+.stock-val {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: right;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .kpi-card {
+        flex: 0 0 calc(50% - 0.7rem);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-title {
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .kpi-card {
+        flex: 0 0 100%;
+    }
+
+    .panel,
+    .kpi-card {
+        border-radius: 18px;
+    }
+}
+
+/* Chart */
+.chart-panel {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}

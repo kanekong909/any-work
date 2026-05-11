@@ -86,10 +86,7 @@ export class SettingsComponent implements OnInit {
     };
     this.api.getPlans().subscribe(p => this.plans.set(p));
     this.api.getMySubscription().subscribe(s => {
-      console.log('Suscripción recibida completa:', s);
-      console.log('Plan:', s?.plan);
-      console.log('maxUsers:', s?.plan?.maxUsers);
-    this.subscription.set(s);
+      this.subscription.set(s);
     });
     this.loadUsers();
     this.pollSubscription?.unsubscribe();

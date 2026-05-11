@@ -1,198 +1,262 @@
 <div class="page">
-    <div class="page-header">
-    <div>
-        <h1 class="page-title">Reportes</h1>
-        <p class="page-sub">Análisis de tu negocio por período</p>
-    </div>
-    @if (data()) {
-        <button class="btn-export" (click)="exportCSV()">⬇️ Exportar CSV</button>
-    }
-    </div>
-
-    <!-- Filtro de fechas -->
-    <div class="date-filter">
-    <div class="field">
-        <label>Desde</label>
-        <input type="date" [(ngModel)]="from">
-    </div>
-    <div class="field">
-        <label>Hasta</label>
-        <input type="date" [(ngModel)]="to">
-    </div>
-    <button class="btn-primary" (click)="load()" [disabled]="loading()">
-        {{ loading() ? 'Cargando...' : 'Generar reporte' }}
-    </button>
-    <div class="quick-filters">
-        <button class="quick-btn" [class.active]="activeRange === 'month'" (click)="setRange('month')">Este mes</button>
-        <button class="quick-btn" [class.active]="activeRange === 'lastmonth'" (click)="setRange('lastmonth')">Mes anterior</button>
-        <button class="quick-btn" [class.active]="activeRange === 'year'" (click)="setRange('year')">Este año</button>
-    </div>
-    </div>
-
-    @if (data()) {
-    <!-- KPIs con comparativa -->
-    <div class="kpi-grid">
-        <div class="kpi-card green">
-        <div class="kpi-label">Ingresos</div>
-        <div class="kpi-value">{{ formatMoney(data().totalRevenue) }}</div>
-        <div class="kpi-sub">{{ data().salesCount }} ventas</div>
-        @if (data().prevPeriod) {
-            <div class="kpi-trend" [class.up]="data().totalRevenue >= data().prevPeriod.revenue"
-            [class.down]="data().totalRevenue < data().prevPeriod.revenue">
-            {{ getTrend(data().totalRevenue, data().prevPeriod.revenue) }}
-            vs mes anterior
+    <!-- Header con gradiente y estilo moderno -->
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div>
+                <h1 class="page-title">Reportes & Análisis</h1>
+                <p class="page-sub">Visualiza el rendimiento de tu negocio</p>
             </div>
-        }
-        </div>
-        <div class="kpi-card red">
-        <div class="kpi-label">Gastos</div>
-        <div class="kpi-value">{{ formatMoney(data().totalExpenses) }}</div>
-        @if (data().prevPeriod) {
-            <div class="kpi-trend" [class.up]="data().totalExpenses <= data().prevPeriod.expenses"
-            [class.down]="data().totalExpenses > data().prevPeriod.expenses">
-            {{ getTrend(data().totalExpenses, data().prevPeriod.expenses) }}
-            vs mes anterior
-            </div>
-        }
-        </div>
-        <div class="kpi-card" [class.green]="data().profit >= 0" [class.red]="data().profit < 0">
-        <div class="kpi-label">Ganancia neta</div>
-        <div class="kpi-value">{{ formatMoney(data().profit) }}</div>
-        <div class="kpi-sub">{{ data().profit >= 0 ? '📈 Positivo' : '📉 Negativo' }}</div>
-        @if (data().prevPeriod) {
-            <div class="kpi-trend" [class.up]="data().profit >= data().prevPeriod.profit"
-            [class.down]="data().profit < data().prevPeriod.profit">
-            {{ getTrend(data().profit, data().prevPeriod.profit) }}
-            vs mes anterior
-            </div>
-        }
-        </div>
-        <div class="kpi-card">
-        <div class="kpi-label">Ticket promedio</div>
-        <div class="kpi-value">
-            {{ formatMoney(data().salesCount > 0 ? data().totalRevenue / data().salesCount : 0) }}
-        </div>
-        <div class="kpi-sub">por venta</div>
+            @if (data()) {
+                <button class="btn-export-modern" (click)="exportCSV()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exportar CSV
+                </button>
+            }
         </div>
     </div>
 
-    <div class="reports-grid">
-        <!-- Gráfica ventas por día con SVG -->
-        <div class="panel">
-        <h3 class="panel-title">Ventas por día</h3>
-        @if (salesDays().length === 0) {
-            <div class="empty">Sin ventas en el período</div>
-        } @else {
-            <div class="svg-chart">
-            <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" width="100%" [attr.height]="svgHeight">
-                <!-- Líneas de referencia -->
-                @for (line of gridLines; track line) {
-                <line [attr.x1]="chartPad" [attr.y1]="line.y"
-                    [attr.x2]="svgWidth - 10" [attr.y2]="line.y"
-                    stroke="var(--border-color)" stroke-width="1" stroke-dasharray="4,4"/>
-                <text [attr.x]="chartPad - 4" [attr.y]="line.y + 4"
-                    text-anchor="end" font-size="9" fill="var(--text-tertiary)">
-                    {{ formatShort(line.value) }}
-                </text>
+    <!-- Filtros modernos -->
+    <div class="filters-modern">
+        <div class="date-range-modern">
+            <div class="date-field">
+                <label>Desde</label>
+                <input type="date" [(ngModel)]="from" class="modern-input">
+            </div>
+            <div class="date-field">
+                <label>Hasta</label>
+                <input type="date" [(ngModel)]="to" class="modern-input">
+            </div>
+            <button class="btn-generate" (click)="load()" [disabled]="loading()">
+                @if (loading()) {
+                    <div class="spinner-small"></div>
+                } @else {
+                    'Generar reporte'
                 }
-                <!-- Barras -->
-                @for (bar of svgBars(); track bar.date) {
-                <rect [attr.x]="bar.x" [attr.y]="bar.y"
-                    [attr.width]="bar.w" [attr.height]="bar.h"
-                    rx="3" fill="var(--brand-primary)" opacity="0.85"/>
-                <text [attr.x]="bar.x + bar.w / 2" [attr.y]="svgHeight - 2"
-                    text-anchor="middle" font-size="9" fill="var(--text-tertiary)">
-                    {{ bar.label }}
-                </text>
-                }
-            </svg>
-            </div>
-        }
+            </button>
         </div>
+        
+        <div class="quick-filters-modern">
+            <button class="quick-chip" [class.active]="activeRange === 'month'" (click)="setRange('month')">
+                📅 Este mes
+            </button>
+            <button class="quick-chip" [class.active]="activeRange === 'lastmonth'" (click)="setRange('lastmonth')">
+                📆 Mes anterior
+            </button>
+            <button class="quick-chip" [class.active]="activeRange === 'year'" (click)="setRange('year')">
+                📊 Este año
+            </button>
+        </div>
+    </div>
 
-        <!-- Gastos por categoría -->
-        <div class="panel">
-        <h3 class="panel-title">Gastos por categoría</h3>
-        @if (expenseCategories().length === 0) {
-            <div class="empty">Sin gastos en el período</div>
-        } @else {
-            <div class="cat-list">
-            @for (cat of expenseCategories(); track cat.key) {
-                <div class="cat-row">
-                <span class="cat-name">{{ getCatLabel(cat.key) }}</span>
-                <div class="bar-wrap">
-                    <div class="bar-fill accent" [style.width.%]="getCatPct(cat.value)"></div>
+    @if (data()) {
+        <!-- KPIs modernos estilo tarjetas de neubrutalism/glassmorphism -->
+        <div class="kpi-grid-modern">
+            <div class="kpi-card-modern revenue">
+                <div class="kpi-icon">💰</div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Ingresos</span>
+                    <span class="kpi-value">{{ formatMoney(data().totalRevenue) }}</span>
+                    <span class="kpi-meta">{{ data().salesCount }} ventas realizadas</span>
                 </div>
-                <span class="bar-val">{{ formatMoney(cat.value) }}</span>
+                @if (data().prevPeriod) {
+                    <div class="kpi-trend-modern" [class.trend-up]="data().totalRevenue >= data().prevPeriod.revenue"
+                         [class.trend-down]="data().totalRevenue < data().prevPeriod.revenue">
+                        {{ getTrend(data().totalRevenue, data().prevPeriod.revenue) }}
+                    </div>
+                }
+            </div>
+
+            <div class="kpi-card-modern expenses">
+                <div class="kpi-icon">📉</div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Gastos</span>
+                    <span class="kpi-value">{{ formatMoney(data().totalExpenses) }}</span>
+                    <span class="kpi-meta">Total del período</span>
+                </div>
+                @if (data().prevPeriod) {
+                    <div class="kpi-trend-modern" [class.trend-up]="data().totalExpenses > data().prevPeriod.expenses"
+                         [class.trend-down]="data().totalExpenses <= data().prevPeriod.expenses">
+                        {{ getTrend(data().totalExpenses, data().prevPeriod.expenses) }}
+                    </div>
+                }
+            </div>
+
+            <div class="kpi-card-modern profit" [class.profit-positive]="data().profit >= 0" [class.profit-negative]="data().profit < 0">
+                <div class="kpi-icon">📈</div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Ganancia Neta</span>
+                    <span class="kpi-value">{{ formatMoney(data().profit) }}</span>
+                    <span class="kpi-meta">{{ data().profit >= 0 ? '+ Rentable' : '- Pérdida' }}</span>
+                </div>
+                @if (data().prevPeriod) {
+                    <div class="kpi-trend-modern" [class.trend-up]="data().profit >= data().prevPeriod.profit"
+                         [class.trend-down]="data().profit < data().prevPeriod.profit">
+                        {{ getTrend(data().profit, data().prevPeriod.profit) }}
+                    </div>
+                }
+            </div>
+
+            <div class="kpi-card-modern avg-ticket">
+                <div class="kpi-icon">🎫</div>
+                <div class="kpi-content">
+                    <span class="kpi-label">Ticket Promedio</span>
+                    <span class="kpi-value">
+                        {{ formatMoney(data().salesCount > 0 ? data().totalRevenue / data().salesCount : 0) }}
+                    </span>
+                    <span class="kpi-meta">Por venta</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos en grid 2 columnas -->
+        <div class="charts-grid">
+            <!-- Ventas por día - Gráfico de barras mejorado -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>📊 Ventas por día</h3>
+                    <span class="chart-period">{{ from }} → {{ to }}</span>
+                </div>
+                @if (salesDays().length === 0) {
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Sin ventas en el período</p>
+                    </div>
+                } @else {
+                    <div class="svg-chart-modern">
+                        <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" width="100%" [attr.height]="svgHeight">
+                            <!-- Líneas de referencia -->
+                            @for (line of gridLines; track line) {
+                                <line [attr.x1]="chartPad" [attr.y1]="line.y"
+                                      [attr.x2]="svgWidth - 10" [attr.y2]="line.y"
+                                      stroke="var(--border-light)" stroke-width="1" stroke-dasharray="4,4"/>
+                                <text [attr.x]="chartPad - 4" [attr.y]="line.y + 4"
+                                      text-anchor="end" font-size="9" fill="var(--text-tertiary)">
+                                    {{ formatShort(line.value) }}
+                                </text>
+                            }
+                            <!-- Barras con gradiente -->
+                            @for (bar of svgBars(); track bar.date) {
+                                <rect [attr.x]="bar.x" [attr.y]="bar.y"
+                                      [attr.width]="bar.w" [attr.height]="bar.h"
+                                      rx="4" class="bar-modern"/>
+                                <text [attr.x]="bar.x + bar.w / 2" [attr.y]="svgHeight - 2"
+                                      text-anchor="middle" font-size="9" fill="var(--text-tertiary)">
+                                    {{ bar.label }}
+                                </text>
+                            }
+                        </svg>
+                    </div>
+                }
+            </div>
+
+            <!-- Gastos por categoría - Donut mejorado -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3>🥧 Gastos por categoría</h3>
+                    <span class="chart-period">Desglose</span>
+                </div>
+                @if (expenseCategories().length === 0) {
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Sin gastos en el período</p>
+                    </div>
+                } @else {
+                    <div class="category-list-modern">
+                        @for (cat of expenseCategories(); track cat.key) {
+                            <div class="category-item">
+                                <div class="category-info">
+                                    <span class="category-dot" [style.background]="getCategoryColor(cat.key)"></span>
+                                    <span class="category-name">{{ getCatLabel(cat.key) }}</span>
+                                </div>
+                                <div class="category-bar-container">
+                                    <div class="category-bar" [style.width.%]="getCatPct(cat.value)" [style.background]="getCategoryColor(cat.key)"></div>
+                                </div>
+                                <span class="category-value">{{ formatMoney(cat.value) }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Top productos - Cards horizontales -->
+        <div class="top-products-section">
+            <div class="section-header">
+                <h3>🏆 Top productos más vendidos</h3>
+                <span class="section-badge">Mayor facturación</span>
+            </div>
+            @if (data().topProducts.length === 0) {
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>Sin ventas en el período</p>
+                </div>
+            } @else {
+                <div class="products-grid">
+                    @for (p of data().topProducts; track p.name; let i = $index) {
+                        <div class="product-card" [class.top-1]="i === 0" [class.top-2]="i === 1" [class.top-3]="i === 2">
+                            <div class="product-rank">{{ i + 1 }}</div>
+                            <div class="product-info">
+                                <div class="product-name">{{ p.name }}</div>
+                                <div class="product-stats">
+                                    <span>📦 {{ p.qty }} unidades</span>
+                                    <span>💰 {{ formatMoney(p.revenue) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
+        </div>
+
+        <!-- Detalle de ventas - Tabla mejorada con sticky header -->
+        <div class="detail-section">
+            <div class="section-header">
+                <h3>📋 Detalle de ventas</h3>
+                <span class="detail-badge">{{ salesDetail().length }} transacciones</span>
             </div>
-        }
-        </div>
-    </div>
-
-    <!-- Top productos -->
-    <div class="panel full">
-        <h3 class="panel-title">Top 5 productos más vendidos</h3>
-        @if (data().topProducts.length === 0) {
-        <div class="empty">Sin ventas en el período</div>
-        } @else {
-        <table>
-            <thead>
-            <tr><th>#</th><th>Producto</th><th>Cantidad</th><th>Ingresos</th></tr>
-            </thead>
-            <tbody>
-            @for (p of data().topProducts; track p.name; let i = $index) {
-                <tr>
-                <td><span class="rank">{{ i + 1 }}</span></td>
-                <td class="prod-name">{{ p.name }}</td>
-                <td>{{ p.qty }}</td>
-                <td class="amount">{{ formatMoney(p.revenue) }}</td>
-                </tr>
+            @if (salesDetail().length === 0) {
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>Sin ventas en el período</p>
+                </div>
+            } @else {
+                <div class="detail-table-container">
+                    <table class="detail-table-modern">
+                        <thead>
+                            <tr>
+                                <th># Venta</th>
+                                <th>Cliente</th>
+                                <th>Método</th>
+                                <th>Items</th>
+                                <th>Descuento</th>
+                                <th>Total</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (s of salesDetail(); track s.id) {
+                                <tr>
+                                    <td class="sale-id">{{ s.saleNumber }}</td>
+                                    <td>{{ s.customerName || 'General' }}</td>
+                                    <td>
+                                        <span class="payment-badge" [class]="s.paymentType">
+                                            {{ getPayLabel(s.paymentType) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ s.items?.length || 0 }} items</td>
+                                    <td class="discount">{{ s.discount > 0 ? formatMoney(s.discount) : '—' }}</td>
+                                    <td class="total-amount">{{ formatMoney(s.total) }}</td>
+                                    <td class="date">{{ formatDate(s.createdAt) }}</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-            </tbody>
-        </table>
-        }
-    </div>
-
-    <!-- Detalle de ventas -->
-    <div class="panel full">
-        <div class="panel-header-row">
-        <h3 class="panel-title">Detalle de ventas</h3>
-        <span class="detail-count">{{ salesDetail().length }} ventas</span>
         </div>
-        @if (salesDetail().length === 0) {
-        <div class="empty">Sin ventas en el período</div>
-        } @else {
-        <div class="detail-table-wrap">
-            <table>
-            <thead>
-                <tr>
-                <th># Venta</th>
-                <th>Cliente</th>
-                <th>Método</th>
-                <th>Items</th>
-                <th>Descuento</th>
-                <th>Total</th>
-                <th>Fecha</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (s of salesDetail(); track s.id) {
-                <tr>
-                    <td class="sale-num">{{ s.saleNumber }}</td>
-                    <td>{{ s.customerName || 'General' }}</td>
-                    <td><span class="pay-badge">{{ getPayLabel(s.paymentType) }}</span></td>
-                    <td>{{ s.items?.length || 0 }}</td>
-                    <td>{{ s.discount > 0 ? formatMoney(s.discount) : '—' }}</td>
-                    <td class="amount">{{ formatMoney(s.total) }}</td>
-                    <td class="date-cell">{{ formatDate(s.createdAt) }}</td>
-                </tr>
-                }
-            </tbody>
-            </table>
-        </div>
-        }
-    </div>
     }
 </div>

@@ -1,4 +1,5 @@
     <div class="page">
+      <!-- HEADER -->
       <div class="page-header">
         <div>
           <h1 class="page-title">Gastos</h1>
@@ -7,13 +8,21 @@
         <button class="btn-primary" (click)="openModal()">+ Registrar gasto</button>
       </div>
 
+      <!-- FILTROS -->
       <div class="filters">
-        <select [(ngModel)]="filterMonth" (ngModelChange)="loadExpenses()" class="filter-select">
-          @for (m of months; track m.value) {
-            <option [value]="m.value">{{ m.label }}</option>
+        <select [(ngModel)]="filterYear" (ngModelChange)="onYearChange()" class="filter-select">
+          @for (year of availableYears(); track year) {
+            <option [value]="year">{{ year }}</option>
           }
         </select>
-        <select [(ngModel)]="filterCategory" (ngModelChange)="loadExpenses()" class="filter-select">
+
+        <select [(ngModel)]="filterMonth" (ngModelChange)="onMonthChange($event)" class="filter-select">
+          @for (m of availableMonths(); track m.value + '-' + m.year) {
+            <option [value]="m.value" [hidden]="m.year !== filterYear">{{ m.label }}</option>
+          }
+        </select>
+        
+        <select [(ngModel)]="filterCategory" (ngModelChange)="currentPage.set(1); loadExpenses()" class="filter-select">
           <option value="">Todas las categorías</option>
           @for (c of categoryOptions; track c.value) {
             <option [value]="c.value">{{ c.label }}</option>
@@ -21,6 +30,7 @@
         </select>
       </div>
 
+      <!-- TABLAS -->
       <div class="table-wrap">
         <table>
           <thead>
@@ -36,23 +46,23 @@
           <tbody>
             @for (e of expenses(); track e.id) {
               <tr>
-                <td>
-                  <div class="exp-desc" [style.opacity]="expenseToDelete() === e.id ? '0.4' : '1'">{{ e.description }}</div>
-                  @if (e.notes) { <div class="exp-notes">{{ e.notes }}</div> }
-                </td>
-                
-                <td>
-                  @if (e.supplier) {
-                    <div class="exp-supplier">🏭 {{ e.supplier.name }}</div>
-                  } @else {
-                    <span style="color: var(--text-secondary); font-size: 0.85rem;">-</span>
-                  }
-                </td>
+                  <td>
+                    <div class="exp-desc" [style.opacity]="expenseToDelete() === e.id ? '0.4' : '1'">{{ e.description }}</div>
+                    @if (e.notes) { <div class="exp-notes">{{ e.notes }}</div> }
+                  </td>
+                  
+                  <td>
+                    @if (e.supplier) {
+                      <div class="exp-supplier">🏭 {{ e.supplier.name }}</div>
+                    } @else {
+                      <span style="color: var(--text-secondary); font-size: 0.85rem;">-</span>
+                    }
+                  </td>
 
-                <td><span class="badge cat-badge">{{ getCatLabel(e.category) }}</span></td>
-                <td class="date-cell">{{ e.date | date:'d MMM yyyy':'':'es' }}</td>
-                <td class="amount-cell" style="font-weight: 600;">{{ e.amount | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-                <td style="text-align: right; padding-right: 1.5rem;">
+                  <td><span class="badge cat-badge">{{ getCatLabel(e.category) }}</span></td>
+                  <td class="date-cell">{{ formatLocalDate(e.date) }}</td>
+                  <td class="amount-cell" style="font-weight: 600;">{{ e.amount | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                  <td style="text-align: right; padding-right: 1.5rem;">
                   
                   @if (expenseToDelete() === e.id) {
                     <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
@@ -81,6 +91,54 @@
         </table>
       </div>
 
+      <!-- Paginación -->
+      @if (totalPages() > 0) {
+        <div class="pagination-container">
+          <div class="pagination-info">
+            Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
+            {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
+            de {{ totalItems() }} gastos
+          </div>
+          
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <span>Mostrar:</span>
+              <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size">{{ size }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button class="page-btn" 
+                      [disabled]="currentPage() === 1" 
+                      (click)="previousPage()">
+                « Anterior
+              </button>
+              
+              @for (page of getPageNumbers(); track page) {
+                @if (page === -1) {
+                  <span class="page-ellipsis">...</span>
+                } @else {
+                  <button class="page-btn" 
+                          [class.active]="currentPage() === page"
+                          (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                }
+              }
+              
+              <button class="page-btn" 
+                      [disabled]="currentPage() === totalPages()" 
+                      (click)="nextPage()">
+                Siguiente »
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
 
     @if (showModal()) {
@@ -98,7 +156,10 @@
             <div class="field-row">
               <div class="field">
                 <label>Monto (COP) *</label>
-                <input type="number" [(ngModel)]="form.amount" min="0">
+                <input type="text" 
+                      [value]="formatCOP(form.amount)" 
+                      (input)="form.amount = parseCOP($any($event.target).value)"
+                      placeholder="0">
               </div>
               <div class="field">
                 <label>Fecha *</label>

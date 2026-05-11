@@ -26,6 +26,12 @@ export class InventoryComponent implements OnInit {
   selectedCategory = '';
   showLowStock = false;
 
+  // Paginacion
+  currentPage = signal(1);
+  pageSize = signal(10);
+  totalPages = signal(0);
+  pageSizeOptions = [10, 25, 50, 100];
+
   // Categorias
   showCatManager = signal(false);
   editingCat = signal<any>(null);
@@ -47,21 +53,84 @@ export class InventoryComponent implements OnInit {
     this.api.getCategories().subscribe(c => this.categories.set(c));
   }
 
-  // Cargar productos con filtros
+  // Cargar productos con filtros y paginación
   loadProducts(): void {
     this.loading.set(true);
-    const params: any = { limit: 50 };
+    const params: any = { 
+      page: this.currentPage(),
+      limit: this.pageSize()
+    };
     if (this.searchQuery) params.search = this.searchQuery;
     if (this.selectedCategory) params.categoryId = this.selectedCategory;
     if (this.showLowStock) params.lowStock = true;
+    
     this.api.getProducts(params).subscribe(r => {
       this.products.set(r.items);
       this.total.set(r.total);
+      this.totalPages.set(Math.ceil(r.total / this.pageSize()));
       this.loading.set(false);
     });
   }
 
-  onSearch(): void { setTimeout(() => this.loadProducts(), 300); }
+  onSearch(): void {
+    this.currentPage.set(1); 
+    setTimeout(() => this.loadProducts(), 300); 
+  }
+
+  // Métodos de paginación
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
+    this.loadProducts();
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      this.currentPage.update(page => page - 1);
+      this.loadProducts();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.update(page => page + 1);
+      this.loadProducts();
+    }
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadProducts();
+  }
+
+  // Agrega este método después de changePageSize()
+  getPageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      if (current <= 3) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(total);
+      } else if (current >= total - 2) {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = total - 4; i <= total; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(total);
+      }
+    }
+    return pages;
+  }
 
   openModal(p?: Product): void {
     this.editingProduct.set(p || null);

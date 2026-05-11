@@ -65,6 +65,10 @@ export class ApiService {
   deleteExpense(id: string): Observable<any> {
     return this.http.delete(`${this.api}/expenses/${id}`);
   }
+  // En api.service.ts
+  getExpensesMonths(): Observable<{ month: number; year: number }[]> {
+    return this.http.get<{ month: number; year: number }[]>(`${this.api}/expenses/months`);
+  }
 
   // ── Sales ─────────────────────────────────────────────────
   getSales(params?: any): Observable<PagedResponse<Sale> & { totalRevenue: number }> {
@@ -145,8 +149,8 @@ export class ApiService {
   }
 
   // ── Audit ───────────────────────────────────────────────────
-  getAuditLogs(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/audit`);
+  getAuditLogs(params?: any): Observable<any> {
+    return this.http.get(`${this.api}/audit`, { params });
   }
 
   // ── Admin ─────────────────────────────────────────────────

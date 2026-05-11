@@ -1,129 +1,147 @@
 <div class="page">
-  <div class="page-header">
-      <div>
-        <h1 class="page-title">Ventas</h1>
-        <p class="page-sub">Total hoy: <strong>{{ todayRevenue() | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></p>
-      </div>
-      <button class="btn-primary" (click)="openPOS()">+ Nueva venta</button>
-  </div>
+    <!-- HEADER -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Ventas</h1>
+            <p class="page-sub">Total hoy: <strong>{{ todayRevenue() | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></p>
+        </div>
+        <button class="btn-primary" (click)="openPOS()">+ Nueva venta</button>
+    </div>
 
-  <!-- NUEVA BARRA DE FILTROS AVANZADA Y ESTILIZADA -->
-  <div class="filters-bar">
-      <div class="filter-group search-group">
-          <label class="filter-label">Buscar Transacción</label>
-          <div class="input-icon-wrap">
-              <span class="input-icon">
-                <img src="/assets/icons/search.svg" alt="Buscar" style="width: 16px;">
-              </span>
-              <input type="text" 
-                     [value]="searchTerm()" 
-                     (input)="onSearchChange($any($event.target).value)"
-                     placeholder="N° venta, cliente..." 
-                     class="filter-input input-search">
-          </div>
-      </div>
+    <!-- NUEVA BARRA DE FILTROS AVANZADA Y ESTILIZADA -->
+    <div class="filters-bar">
+        <div class="filter-group search-group">
+            <label class="filter-label">Buscar Transacción</label>
+            <div class="input-icon-wrap">
+                <span class="input-icon">
+                    <img src="/assets/icons/search.svg" alt="Buscar" style="width: 16px;">
+                </span>
+                <input type="text" 
+                        [value]="searchTerm()" 
+                        (input)="onSearchChange($any($event.target).value)"
+                        placeholder="N° venta, cliente..." 
+                        class="filter-input input-search">
+            </div>
+        </div>
 
-      <div class="filter-group-row">
-          <div class="filter-group">
-              <label class="filter-label">Desde</label>
-              <input type="date" 
-                     [ngModel]="startDate()" 
-                     (ngModelChange)="startDate.set($event); onDateFilterChange()" 
-                     class="filter-input">
-          </div>
-          <div class="filter-group">
-              <label class="filter-label">Hasta</label>
-              <input type="date" 
-                     [ngModel]="endDate()" 
-                     (ngModelChange)="endDate.set($event); onDateFilterChange()" 
-                     class="filter-input">
-          </div>
-      </div>
+        <div class="filter-group-row">
+            <div class="filter-group">
+                <label class="filter-label">Desde</label>
+                <input type="date" 
+                        [ngModel]="startDate()" 
+                        (ngModelChange)="startDate.set($event); onDateFilterChange()" 
+                        class="filter-input">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Hasta</label>
+                <input type="date" 
+                        [ngModel]="endDate()" 
+                        (ngModelChange)="endDate.set($event); onDateFilterChange()" 
+                        class="filter-input">
+            </div>
+        </div>
 
-      @if (searchTerm() || startDate() || endDate()) {
-          <button class="btn-clear-filters" (click)="clearFilters()">
-              Limpiar Filtros
-          </button>
-      }
-  </div>
-
-  <!-- Historial de Tabla -->
-  <div class="table-wrap">
-      <table>
-      <thead>
-          <tr>
-          <th># Venta</th>
-          <th>Cliente</th>
-          <th>Pago</th>
-          <th>Items</th>
-          <th>Total</th>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Acciones</th>
-          </tr>
-      </thead>
-      <tbody>
-          @for (s of sales(); track s.id) {
-          <tr>
-              <td class="sale-num">{{ s.saleNumber }}</td>
-              <td>{{ s.customerName || 'General' }}</td>
-              <td><span class="pay-badge">{{ getPayLabel(s.paymentType) }}</span></td>
-              <td>{{ s.items.length || 0 }} items</td>
-              <td class="amount">{{ s.total | currency:'COP':'$':'1.0-0' }}</td>
-              <td class="date">{{ s.createdAt | date:'yyyy-MM-dd' }}</td>
-              <td class="time">{{ s.createdAt | date:'h:mm a' }}</td>
-              <td>
-                <div class="actions-wrapper">
-                  <button class="action-btn" (click)="openEdit(s)">
-                      <img src="assets/icons/edit.svg" alt="Editar" width="16" height="16">
-                  </button>
-                  <button class="action-btn del" (click)="saleToDelete.set(s.id)">
-                      <img src="assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
-                  </button>
-                </div>
-              </td>
-          </tr>
-          }
-          @if (sales().length === 0) {
-          <tr><td colspan="8" class="empty-row">No se encontraron ventas con los filtros aplicados</td></tr>
-          }
-      </tbody>
-      </table>
-  </div>
-
-  <!-- CONTROL DE PAGINACIÓN INTERACTIVO -->
-  @if (totalPages() > 1) {
-    <div class="pagination-container">
-        <span class="pagination-info">
-            Mostrando página <strong>{{ currentPage() }}</strong> de {{ totalPages() }} ({{ totalItems() }} registros totales)
-        </span>
-        <div class="pagination-buttons">
-            <button class="pagination-btn" 
-                    [disabled]="currentPage() === 1" 
-                    (click)="goToPage(currentPage() - 1)">
-                ◀ Anterior
+        @if (searchTerm() || startDate() || endDate()) {
+            <button class="btn-clear-filters" (click)="clearFilters()">
+                Limpiar Filtros
             </button>
-            
-            @for (p of [].constructor(totalPages()); track i; let i = $index) {
-                <button class="pagination-btn page-num-btn"
-                        [class.active]="currentPage() === (i + 1)"
-                        (click)="goToPage(i + 1)">
-                    {{ i + 1 }}
-                </button>
+        }
+    </div>
+
+    <!-- Historial de Tabla -->
+    <div class="table-wrap">
+        <table>
+        <thead>
+            <tr>
+            <th># Venta</th>
+            <th>Cliente</th>
+            <th>Pago</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (s of sales(); track s.id) {
+            <tr>
+                <td class="sale-num">{{ s.saleNumber }}</td>
+                <td>{{ s.customerName || 'General' }}</td>
+                <td><span class="pay-badge">{{ getPayLabel(s.paymentType) }}</span></td>
+                <td>{{ s.items.length || 0 }} items</td>
+                <td class="amount">{{ s.total | currency:'COP':'$':'1.0-0' }}</td>
+                <td class="date">{{ s.createdAt | date:'yyyy-MM-dd' }}</td>
+                <td class="time">{{ s.createdAt | date:'h:mm a' }}</td>
+                <td>
+                    <div class="actions-wrapper">
+                    <button class="action-btn" (click)="openEdit(s)">
+                        <img src="assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                    </button>
+                    <button class="action-btn del" (click)="saleToDelete.set(s.id)">
+                        <img src="assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                    </button>
+                    </div>
+                </td>
+            </tr>
             }
+            @if (sales().length === 0) {
+            <tr><td colspan="8" class="empty-row">No se encontraron ventas con los filtros aplicados</td></tr>
+            }
+        </tbody>
+        </table>
+    </div>
 
-            <button class="pagination-btn" 
-                    [disabled]="currentPage() === totalPages()" 
-                    (click)="goToPage(currentPage() + 1)">
-                Siguiente ▶
-            </button>
+    <!-- CONTROL DE PAGINACIÓN INTERACTIVO -->
+@if (totalPages() > 0) {
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
+            {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
+            de {{ totalItems() }} registros
+        </div>
+        
+        <div class="pagination-controls">
+            <!-- Selector de items por página -->
+            <div class="page-size-selector">
+                <span>Mostrar:</span>
+                <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
+                    @for (size of pageSizeOptions; track size) {
+                        <option [value]="size">{{ size }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Botones de paginación -->
+            <div class="pagination-buttons">
+                <button class="page-btn" 
+                        [disabled]="currentPage() === 1" 
+                        (click)="goToPage(currentPage() - 1)">
+                    « Anterior
+                </button>
+                
+                @for (page of getPageNumbers(); track page) {
+                    @if (page === -1) {
+                        <span class="page-ellipsis">...</span>
+                    } @else {
+                        <button class="page-btn" 
+                                [class.active]="currentPage() === page"
+                                (click)="goToPage(page)">
+                            {{ page }}
+                        </button>
+                    }
+                }
+                
+                <button class="page-btn" 
+                        [disabled]="currentPage() === totalPages()" 
+                        (click)="goToPage(currentPage() + 1)">
+                    Siguiente »
+                </button>
+            </div>
         </div>
     </div>
-  }
+}
 </div>
-
-
-
 
 <!-- POS Modal -->
 @if (showPOS()) {
@@ -319,5 +337,4 @@
     </div>
 </div>
 }
-
-<app-toast />
+<!-- <app-toast /> -->

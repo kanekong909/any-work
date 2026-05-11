@@ -74,6 +74,52 @@
         </tbody>
     </table>
     </div>
+
+    <!-- Paginación -->
+    @if (totalPages() > 0) {
+    <div class="pagination-container">
+        <div class="pagination-info">
+        Mostrando {{ (currentPage() - 1) * pageSize() + 1 }} - 
+        {{ currentPage() * pageSize() > total() ? total() : currentPage() * pageSize() }} 
+        de {{ total() }} productos
+        </div>
+        
+        <div class="pagination-controls">
+        <!-- Selector de items por página -->
+        <div class="page-size-selector">
+            <span>Mostrar:</span>
+            <select [ngModel]="pageSize()" (ngModelChange)="changePageSize($event)">
+            @for (size of pageSizeOptions; track size) {
+                <option [value]="size">{{ size }}</option>
+            }
+            </select>
+        </div>
+
+        <!-- Botones de paginación -->
+        <div class="pagination-buttons">
+            <button class="page-btn" (click)="previousPage()" [disabled]="currentPage() === 1">
+            « Anterior
+            </button>
+            
+            @for (page of getPageNumbers(); track page) {
+                @if (page === -1) {
+                    <span class="page-ellipsis">...</span>
+                } @else {
+                    <button class="page-btn" 
+                        [class.active]="currentPage() === page"
+                        (click)="goToPage(page)">
+                        {{ page }}
+                    </button>
+                }
+            }
+            
+            <button class="page-btn" (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+            Siguiente »
+            </button>
+        </div>
+        </div>
+    </div>
+    }
 </div>
 
 <!-- Modal -->

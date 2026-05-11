@@ -1,97 +1,97 @@
 {
-  "hash": "c479e209",
+  "hash": "61935b23",
   "configHash": "909fbf92",
-  "lockfileHash": "25eff786",
-  "browserHash": "83b2dd6f",
+  "lockfileHash": "1c85942d",
+  "browserHash": "558f78a9",
   "optimized": {
     "@angular/cdk/drag-drop": {
       "src": "../../../../../node_modules/@angular/cdk/fesm2022/drag-drop.mjs",
       "file": "@angular_cdk_drag-drop.js",
-      "fileHash": "decd7bb4",
+      "fileHash": "2d381bee",
       "needsInterop": false
     },
     "@angular/common": {
       "src": "../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "2a640450",
+      "fileHash": "e5392d5f",
       "needsInterop": false
     },
     "@angular/common/http": {
       "src": "../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "2c69f5ce",
+      "fileHash": "c33d7983",
       "needsInterop": false
     },
     "@angular/common/locales/es-CO": {
       "src": "../../../../../node_modules/@angular/common/locales/es-CO.mjs",
       "file": "@angular_common_locales_es-CO.js",
-      "fileHash": "e6601551",
+      "fileHash": "3de202f4",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "8e4010af",
+      "fileHash": "aaa619ee",
       "needsInterop": false
     },
     "@angular/forms": {
       "src": "../../../../../node_modules/@angular/forms/fesm2022/forms.mjs",
       "file": "@angular_forms.js",
-      "fileHash": "18704a84",
+      "fileHash": "bc777a2c",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "44301d17",
+      "fileHash": "be0f70d2",
       "needsInterop": false
     },
     "@angular/platform-browser/animations": {
       "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/animations.mjs",
       "file": "@angular_platform-browser_animations.js",
-      "fileHash": "2be5d067",
+      "fileHash": "020a1a6f",
       "needsInterop": false
     },
     "@angular/platform-browser/animations/async": {
       "src": "../../../../../node_modules/@angular/platform-browser/fesm2022/animations/async.mjs",
       "file": "@angular_platform-browser_animations_async.js",
-      "fileHash": "ac4b6334",
+      "fileHash": "65ee068c",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "ef438f26",
+      "fileHash": "29e787e7",
       "needsInterop": false
     },
     "chart.js": {
       "src": "../../../../../node_modules/chart.js/dist/chart.js",
       "file": "chart__js.js",
-      "fileHash": "64f702ae",
+      "fileHash": "72007945",
       "needsInterop": false
     },
     "lottie-web": {
       "src": "../../../../../node_modules/lottie-web/build/player/lottie.js",
       "file": "lottie-web.js",
-      "fileHash": "9350bae7",
+      "fileHash": "100ded7e",
       "needsInterop": true
     },
     "ngx-lottie": {
       "src": "../../../../../node_modules/ngx-lottie/fesm2022/ngx-lottie.mjs",
       "file": "ngx-lottie.js",
-      "fileHash": "3e4be750",
+      "fileHash": "a9546bd2",
       "needsInterop": false
     },
     "ngx-toastr": {
       "src": "../../../../../node_modules/ngx-toastr/fesm2022/ngx-toastr.mjs",
       "file": "ngx-toastr.js",
-      "fileHash": "27293955",
+      "fileHash": "2469ae10",
       "needsInterop": false
     },
     "rxjs": {
       "src": "../../../../../node_modules/rxjs/dist/esm5/index.js",
       "file": "rxjs.js",
-      "fileHash": "4fee1f04",
+      "fileHash": "f90cd40f",
       "needsInterop": false
     }
   },

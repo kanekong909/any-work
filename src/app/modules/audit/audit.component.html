@@ -1,32 +1,145 @@
 <div class="page">
-    <h1 class="page-title">Historial de Auditoría</h1>
-    <p class="page-desc">Monitorea en tiempo real los movimientos, ediciones y eliminaciones de tu equipo.</p>
-
-    <div class="card spec-card">
-    <div class="timeline">
-        @for (log of logs(); track log.id) {
-        <div class="timeline-item" [class]="'action-' + log.action.toLowerCase()">
-            <div class="action-badge">
-            @switch (log.action) {
-                @case ('CREATE') { ➕ }
-                @case ('UPDATE') { 📝 }
-                @case ('DELETE') { 🗑️ }
-                @case ('LOGIN')  { 🔑 }
-            }
-            </div>
-            <div class="timeline-content">
-            <div class="timeline-header">
-                <strong class="user-trigger">{{ log.userName }}</strong>
-                <span class="module-tag">{{ getModuleLabel(log.module) }}</span>
-                <span class="timeline-date">{{ log.createdAt | date:'dd/MM/yyyy' }}</span>
-                <span class="timeline-time">{{ log.createdAt | date:'h:mm a' }}</span>
-            </div>
-            <p class="timeline-desc">{{ log.description }}</p>
-            </div>
+    <div class="page-header-modern">
+        <div>
+            <h1 class="page-title">Historial de Auditoría</h1>
+            <p class="page-sub">Monitorea en tiempo real los movimientos, ediciones y eliminaciones de tu equipo.</p>
         </div>
-        } @empty {
-        <div class="empty-state">No se registran movimientos en el sistema aún.</div>
-        }
+        <div class="header-stats">
+            <span class="stat-badge">📋 {{ totalItems() }} registros</span>
+        </div>
     </div>
+
+    <!-- Filtros modernos -->
+    <div class="filters-audit">
+        <div class="filters-grid">
+            <div class="filter-group">
+                <label>Módulo</label>
+                <select [ngModel]="filterModule()" (ngModelChange)="filterModule.set($event); applyFilters()">
+                    <option value="">Todos los módulos</option>
+                    @for (mod of modules; track mod.value) {
+                        <option [value]="mod.value">{{ mod.label }}</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Acción</label>
+                <select [ngModel]="filterAction()" (ngModelChange)="filterAction.set($event); applyFilters()">
+                    <option value="">Todas las acciones</option>
+                    @for (act of actions; track act.value) {
+                        <option [value]="act.value">{{ act.icon }} {{ act.label }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Buscar</label>
+                <input type="search" 
+                       [ngModel]="searchTerm()" 
+                       (ngModelChange)="searchTerm.set($event); onSearch()"
+                       placeholder="Usuario, descripción..." 
+                       class="search-input">
+            </div>
+
+            <div class="filter-group date-range">
+                <label>Desde</label>
+                <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event); applyFilters()">
+            </div>
+
+            <div class="filter-group date-range">
+                <label>Hasta</label>
+                <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event); applyFilters()">
+            </div>
+
+            @if (filterModule() || filterAction() || searchTerm() || startDate() || endDate()) {
+                <div class="filter-group filter-actions">
+                    <label>&nbsp;</label>
+                    <button class="btn-clear" (click)="clearFilters()">Limpiar filtros</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Timeline mejorado -->
+    <div class="timeline-container">
+        <div class="timeline">
+            @for (log of logs(); track log.id) {
+                <div class="timeline-item" [class]="'action-' + log.action.toLowerCase()">
+                    <div class="timeline-icon">
+                        <span class="action-icon">{{ getActionIcon(log.action) }}</span>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="header-left">
+                                <strong class="user-name">{{ log.userName || 'Sistema' }}</strong>
+                                <span class="action-badge" [class]="'action-' + log.action.toLowerCase()">
+                                    {{ getActionLabel(log.action) }}
+                                </span>
+                                <span class="module-badge">{{ getModuleLabel(log.module) }}</span>
+                            </div>
+                            <div class="header-right">
+                                <span class="date-time">{{ formatDateTime(log.createdAt) }}</span>
+                            </div>
+                        </div>
+                        <p class="timeline-description">{{ log.description }}</p>
+                    </div>
+                </div>
+            } @empty {
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <p>No hay registros de auditoría</p>
+                    <span class="empty-sub">Los movimientos del sistema aparecerán aquí</span>
+                </div>
+            }
+        </div>
+
+        <!-- Paginación -->
+        @if (totalPages() > 0) {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
+                    {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
+                    de {{ totalItems() }} registros
+                </div>
+                
+                <div class="pagination-controls">
+                    <div class="page-size-selector">
+                        <span>Mostrar:</span>
+                        <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
+                            @for (size of pageSizeOptions; track size) {
+                                <option [value]="size">{{ size }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="pagination-buttons">
+                        <button class="page-btn" 
+                                [disabled]="currentPage() === 1" 
+                                (click)="previousPage()">
+                            « Anterior
+                        </button>
+                        
+                        @for (page of getPageNumbers(); track page) {
+                            @if (page === -1) {
+                                <span class="page-ellipsis">...</span>
+                            } @else {
+                                <button class="page-btn" 
+                                        [class.active]="currentPage() === page"
+                                        (click)="goToPage(page)">
+                                    {{ page }}
+                                </button>
+                            }
+                        }
+                        
+                        <button class="page-btn" 
+                                [disabled]="currentPage() === totalPages()" 
+                                (click)="nextPage()">
+                            Siguiente »
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>

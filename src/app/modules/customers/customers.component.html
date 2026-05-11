@@ -1,4 +1,5 @@
 <div class="page">
+    <!-- HEADER -->
     <div class="page-header">
     <div>
         <h1 class="page-title">Clientes</h1>
@@ -7,15 +8,25 @@
     <button class="btn-primary" (click)="openModal()">+ Nuevo cliente</button>
     </div>
 
+    <!-- FILTROS -->
     <div class="filters">
-    <input type="search" [(ngModel)]="search" (ngModelChange)="onSearch()"
-        placeholder="Buscar cliente..." class="search-input">
+    <input  type="search" 
+            [(ngModel)]="search" (ngModelChange)="currentPage.set(1);onSearch()"
+            placeholder="Buscar cliente..." class="search-input">
     </div>
 
+    <!-- TABLA -->
     <div class="table-wrap">
     <table>
         <thead>
-        <tr><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Dirección</th><th>Registrado</th><th></th></tr>
+            <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Dirección</th>
+                <th>Registrado</th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
         @for (c of customers(); track c.id) {
@@ -24,7 +35,7 @@
             <td>{{ c.phone || '—' }}</td>
             <td>{{ c.email || '—' }}</td>
             <td>{{ c.address || '—' }}</td>
-            <td>{{ c.createdAt | date:'d MMM yyyy':'':'es' }}</td>
+            <td>{{ formatLocalDate(c.createdAt) }}</td>
             <td>
                 <button class="action-btn" (click)="openModal(c)">
                 <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
@@ -41,6 +52,54 @@
         </tbody>
     </table>
     </div>
+
+    <!-- Paginación -->
+    @if (totalPages() > 0) {
+    <div class="pagination-container">
+        <div class="pagination-info">
+        Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
+        {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
+        de {{ totalItems() }} clientes
+        </div>
+        
+        <div class="pagination-controls">
+        <div class="page-size-selector">
+            <span>Mostrar:</span>
+            <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
+            @for (size of pageSizeOptions; track size) {
+                <option [value]="size">{{ size }}</option>
+            }
+            </select>
+        </div>
+
+        <div class="pagination-buttons">
+            <button class="page-btn" 
+                    [disabled]="currentPage() === 1" 
+                    (click)="previousPage()">
+            « Anterior
+            </button>
+            
+            @for (page of getPageNumbers(); track page) {
+            @if (page === -1) {
+                <span class="page-ellipsis">...</span>
+            } @else {
+                <button class="page-btn" 
+                        [class.active]="currentPage() === page"
+                        (click)="goToPage(page)">
+                {{ page }}
+                </button>
+            }
+            }
+            
+            <button class="page-btn" 
+                    [disabled]="currentPage() === totalPages()" 
+                    (click)="nextPage()">
+            Siguiente »
+            </button>
+        </div>
+        </div>
+    </div>
+    }
 </div>
 
 @if (showModal()) {

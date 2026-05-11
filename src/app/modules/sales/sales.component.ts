@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
-import { ToastComponent } from '@shared/components/toast/toast.component';
+// import { ToastComponent } from '@shared/components/toast/toast.component';
 import { Product, Sale } from '../../core/models';
 
 @Component({
@@ -14,7 +14,7 @@ import { Product, Sale } from '../../core/models';
     CurrencyPipe, 
     DatePipe, 
     DecimalPipe, 
-    ToastComponent
+    // ToastComponent
   ],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.css' 
@@ -29,9 +29,10 @@ export class SalesComponent implements OnInit {
 
   // Estado de paginacion
   currentPage = signal(1);
-  itemsPerPage = 10;
+  itemsPerPage = signal(10);
   totalItems = signal(0);
-  totalPages = () => Math.ceil(this.totalItems() / this.itemsPerPage);
+  totalPages = () => Math.ceil(this.totalItems() / this.itemsPerPage());
+  pageSizeOptions = [10, 20, 50, 100];
 
   private salesSearchTimer: any;
 
@@ -75,8 +76,8 @@ export class SalesComponent implements OnInit {
 
   loadSales(): void {
     const queryParams: any = {
-      limit: this.itemsPerPage,
-      page: this.currentPage(), // Enviamos la página actual al backend
+      limit: this.itemsPerPage(),
+      page: this.currentPage(), 
     };
 
     if (this.searchTerm().trim()) {
@@ -91,9 +92,14 @@ export class SalesComponent implements OnInit {
 
     this.api.getSales(queryParams).subscribe({
       next: (r: any) => {
+        console.log('Respuesta del backend', r);
         this.sales.set(r.items || []);
-        // Si tu backend no retorna 'total', calculamos una paginación lógica con los items devueltos
         this.totalItems.set(r.total || r.items?.length || 0);
+
+        // Verifica que estos valores sean correctos
+        console.log('totalItems:', this.totalItems());
+        console.log('itemsPerPage:', this.itemsPerPage());
+        console.log('totalPages calculado:', Math.ceil(this.totalItems() / this.itemsPerPage()));
       },
       error: () => {
         this.sales.set([]);
@@ -105,12 +111,47 @@ export class SalesComponent implements OnInit {
   // Métodos reactivos para los filtros de la barra superior
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
-    this.currentPage.set(1); // Resetea a la primera página al buscar
+    this.currentPage.set(1); 
     
     clearTimeout(this.salesSearchTimer);
     this.salesSearchTimer = setTimeout(() => {
       this.loadSales();
     }, 350); // Espera 350ms antes de disparar la petición
+  }
+
+  // Agrega después del método goToPage()
+  changePageSize(size: number): void {
+    this.itemsPerPage.set(size);
+    this.currentPage.set(1);
+    this.loadSales();
+  }
+
+  // Agrega después de changePageSize()
+  getPageNumbers(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) pages.push(i);
+    } else {
+      if (current <= 3) {
+        for (let i = 1; i <= 5; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(total);
+      } else if (current >= total - 2) {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = total - 4; i <= total; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(total);
+      }
+    }
+    return pages;
   }
 
   onDateFilterChange(): void {

@@ -170,4 +170,18 @@ export class ReportsComponent implements OnInit {
   getCatPct(val: number): number { return (val / this.maxExpense) * 100; }
   getCatLabel(key: string): string { return CATEGORY_LABELS[key] || key; }
   getPayLabel(type: string): string { return PAY_LABELS[type] || type; }
+
+  getCategoryColor(category: string): string {
+    const colors: Record<string, string> = {
+      supplies: '#10b981',
+      utilities: '#3b82f6',
+      rent: '#f59e0b',
+      salary: '#ef4444',
+      transport: '#8b5cf6',
+      maintenance: '#ec4899',
+      marketing: '#06b6d4',
+      other: '#6b7280'
+    };
+    return colors[category] || '#6366f1';
+  }
 }

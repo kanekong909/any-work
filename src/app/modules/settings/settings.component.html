@@ -1,6 +1,7 @@
 <div class="page">
 <h1 class="page-title">Configuración</h1>
 
+<!-- DATOS DEL NEGOCIO -->
 <div class="section">
     <h2 class="section-title">Datos del negocio</h2>
     <div class="card">
@@ -54,6 +55,7 @@
     </div>
 </div>
 
+<!-- PERSONALIZACION VISUAL -->
 <div class="section">
     <h2 class="section-title">Personalización visual</h2>
     <div class="card">
@@ -98,17 +100,18 @@
     </div>
 </div>
 
+<!-- TU PLAN -->
 <div class="section">
     <h2 class="section-title">Tu plan</h2>
     <div class="card">
     @if (subscription()) {
         <div class="plan-current">
-        <div class="plan-badge">{{ subscription()!.plan.displayName }}</div>
-        <div class="plan-expires">
-            @if (subscription()!.expiresAt) {
-                <div><strong>Vence:</strong> {{ subscription()!.expiresAt | date:'fullDate' }}</div>
-            } @else { Sin vencimiento }
-        </div>
+            <div class="plan-badge">{{ subscription()!.plan.displayName }}</div>
+            <div class="plan-expires">
+                @if (subscription()!.expiresAt) {
+                    <div><strong>Vence:</strong> {{ subscription()!.expiresAt | date:'fullDate' }}</div>
+                } @else { Sin vencimiento }
+            </div>
         </div>
     }
     <div class="plans-grid">
@@ -149,57 +152,55 @@
 <div class="section">
     <h2 class="section-title">Equipo de trabajo</h2>
     <div class="card">
-    <div class="users-header">
-        <p class="users-desc">Gestiona quién tiene acceso a tu negocio y con qué rol.</p>
-        <button class="btn-primary" 
-            [disabled]="alcanzoLimiteUsuarios()" 
-            (click)="openUserModal()"
-            [title]="alcanzoLimiteUsuarios() ? 'Has alcanzado el límite de usuarios de tu plan' : 'Invitar nuevo miembro'">
-            @if (alcanzoLimiteUsuarios()) {
-            🔒 Límite alcanzado
-            } @else {
-            + Invitar usuario
-            }
-        </button>
-    </div>
-
-    <div class="users-list">
-        @for (u of users(); track u.id) {
-        <div class="user-row">
-            <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
-            {{ u.name.charAt(0).toUpperCase() }}
-            </div>
-            <div class="user-info">
-            <span class="user-name">{{ u.name }}</span>
-            <span class="user-email">{{ u.email }}</span>
-            </div>
-            <span class="role-badge" [class]="u.role">{{ getRoleLabel(u.role) }}</span>
-            <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
-            {{ u.isActive ? 'Activo' : 'Inactivo' }}
-            </span>
-            <div class="user-actions" style="display: flex; gap: 8px; align-items: center;">
-            @if (userToDelete()?.id === u.id) {
-                <!-- Estado de Confirmación integrada en la interfaz -->
-                <span style="font-size: 0.8rem; color: #ef4444; font-weight: 500;">¿Eliminar?</span>
-                <button class="action-btn" (click)="confirmDeleteUser()" style="color: #10b981; font-weight: bold;" title="Confirmar">✓</button>
-                <button class="action-btn" (click)="cancelDelete()" style="color: #ef4444; font-weight: bold;" title="Cancelar">✕</button>
-            } @else {
-                <!-- Estado Normal -->
-                <button class="action-btn" (click)="openUserModal(u)">
-                <img src="assets/icons/edit.svg" alt="Editar" style="width: 20px; height: 20px;">
-                </button>
-                
-                <button class="action-btn" (click)="prepareDelete(u)">
-                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 20px; height: 20px;">
-                </button>
-            }
-            </div>
+        <div class="users-header">
+            <p class="users-desc">Gestiona quién tiene acceso a tu negocio y con qué rol.</p>
+            <button class="btn-primary" 
+                [disabled]="alcanzoLimiteUsuarios()" 
+                (click)="openUserModal()"
+                [title]="alcanzoLimiteUsuarios() ? 'Has alcanzado el límite de usuarios de tu plan' : 'Invitar nuevo miembro'">
+                @if (alcanzoLimiteUsuarios()) {
+                🔒 Límite alcanzado
+                } @else {
+                + Invitar usuario
+                }
+            </button>
         </div>
-        }
-        @if (users().length === 0) {
-        <div class="users-empty">Solo tú tienes acceso por ahora</div>
-        }
-    </div>
+        
+        <!-- LISTA DE USUARIO -->
+        <div class="users-list">
+            @for (u of users(); track u.id) {
+                <div class="user-row" [class.inactive-user]="!u.isActive">
+                <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
+                    {{ u.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                    <span class="user-name">{{ u.name }}</span>
+                    <span class="user-email">{{ u.email }}</span>
+                </div>
+                <span class="role-badge" [class]="u.role">{{ getRoleLabel(u.role) }}</span>
+                <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
+                    {{ u.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+                <div class="user-actions">
+                    @if (userToDelete()?.id === u.id) {
+                    <span style="font-size: 0.8rem; color: #ef4444; font-weight: 500;">¿Desactivar?</span>
+                    <button class="action-btn" (click)="confirmDeleteUser()" style="color: #10b981;" title="Confirmar">✓</button>
+                    <button class="action-btn" (click)="cancelDelete()" style="color: #ef4444;" title="Cancelar">✕</button>
+                    } @else {
+                    <button class="action-btn" (click)="openUserModal(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Editar'">
+                        <img src="assets/icons/edit.svg" alt="Editar" style="width: 20px; height: 20px;">
+                    </button>
+                    <button class="action-btn" (click)="prepareDelete(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Eliminar'">
+                        <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 20px; height: 20px;">
+                    </button>
+                    }
+                </div>
+                </div>
+            }
+            @if (users().length === 0) {
+                <div class="users-empty">Solo tú tienes acceso por ahora</div>
+            }
+        </div>
     </div>
 </div>
 

@@ -405,19 +405,29 @@ input:focus {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 200;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    /* Asegurar que el overlay cubra todo el contenido scrolleado */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .modal {
     background: var(--bg-card);
-    border-radius: 16px;
+    border-radius: 20px;
     width: 100%;
-    max-width: 460px;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    /* Asegurar que el modal se centre correctamente */
+    margin: auto;
+    position: relative;
 }
 
 .modal-header {
@@ -426,6 +436,22 @@ input:focus {
     align-items: center;
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .modal {
+        max-width: 95%;
+        max-height: 85vh;
+    }
+    
+    .modal-overlay {
+        align-items: center;
+        padding: 0.5rem;
+    }
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 .modal-header h3 {
@@ -610,4 +636,34 @@ input:disabled {
     font-size: 0.78rem;
     color: var(--brand-primary);
     margin-top: 4px;
+}
+
+/* USUARIO INACTIVO */
+.user-row.inactive-user {
+  opacity: 0.6;
+  background: var(--bg-hover);
+}
+
+.user-row.inactive-user .user-avatar {
+  filter: grayscale(0.5);
+}
+
+.user-row.inactive-user .action-btn {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-row.inactive-user .action-btn:hover {
+  transform: none;
+}
+
+/* EXPIRA PRONTO */
+.expiring-soon {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+.expired {
+    color: #ef4444;
+    font-weight: 500;
 }

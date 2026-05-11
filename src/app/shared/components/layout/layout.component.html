@@ -2,7 +2,7 @@
 
     <!-- Overlay mobile -->
     @if (mobileOpen()) {
-    <div class="overlay" (click)="mobileOpen.set(false)"></div>
+        <div class="overlay" (click)="mobileOpen.set(false)"></div>
     }
 
     <!-- Floating Island Container -->
@@ -37,10 +37,13 @@
 
                 <nav class="sidebar-nav">
                     @for (item of navItems(); track item.path) {
-                    <a [routerLink]="item.path" routerLinkActive="active" class="nav-item" (click)="mobileOpen.set(false)">
-                        <img [src]="item.icon" alt="{{ item.label }}" class="nav-icon" width="20" height="20">
+                    <a  [routerLink]="item.path" 
+                        routerLinkActive="active" 
+                        class="nav-item" 
+                        (click)="$event.stopPropagation(); mobileOpen.set(false)">
+                            <img [src]="item.icon" alt="{{ item.label }}" class="nav-icon" width="20" height="20">
                         @if (!sidebarCollapsed()) {
-                        <span class="nav-label">{{ item.label }}</span>
+                            <span class="nav-label">{{ item.label }}</span>
                         @if (item.badge) { <span class="nav-badge">{{ item.badge }}</span> }
                         }
                     </a>

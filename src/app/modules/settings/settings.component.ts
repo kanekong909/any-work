@@ -336,9 +336,6 @@ export class SettingsComponent implements OnInit {
 
   getLogoUrl(url: string): string {
     if (!url) return '';
-    if (url.startsWith('http')) return url;
-    // ✅ CORREGIDO: usamos la URL base del entorno o window.location.origin
-    const baseUrl = window.location.origin;
-    return `${baseUrl}${url}`;
+    return url; // Cloudinary siempre devuelve URL completa
   }
 }

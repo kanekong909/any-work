@@ -134,17 +134,19 @@
         </div>
         }
     </div>
-    @if (showPayInfo()) {
+        @if (showPayInfo()) {
         <div class="pay-info">
-        <h4>Instrucciones de pago</h4>
-        <p>Realiza la transferencia y envía el comprobante por WhatsApp:</p>
-        <div class="pay-detail">📱 Nequi: <strong>{{ nequiNumber }}</strong></div>
-        <div class="pay-detail">🏦 {{ bankInfo }}</div>
-        <a [href]="'https://wa.me/' + whatsapp" target="_blank" class="btn-whatsapp">
-            Enviar comprobante por WhatsApp →
-        </a>
+            <h4>¡Pago en proceso! 🎉</h4>
+            <p>Se abrió el checkout de Bold en una nueva pestaña. Una vez pagues, tu plan se activará automáticamente.</p>
+            <p style="font-size:0.82rem; color: var(--text-secondary);">
+            ¿No se abrió la ventana?
+            <a [href]="lastPayLink()" target="_blank" style="color: var(--brand-primary);">Haz clic aquí</a>
+            </p>
+            <div style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-secondary);">
+            ⏳ Tu plan se activará automáticamente al confirmar el pago.
+            </div>
         </div>
-    }
+        }
     </div>
 </div>
 

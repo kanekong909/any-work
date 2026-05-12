@@ -178,10 +178,18 @@ export class ApiService {
     return this.http.delete(`${this.api}/tenants/me`);
   }
 
-  // ── Eliminar cuenta ─────────────────────────────────────────────────
+  // ── Subir Logo ─────────────────────────────────────────────────
   uploadLogo(file: File): Observable<any> {
-  const formData = new FormData();
-  formData.append('logo', file);
-  return this.http.post(`${this.api}/tenants/me/logo`, formData);
-}
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post(`${this.api}/tenants/me/logo`, formData);
+  }
+
+  // ── Bold ─────────────────────────────────────────────────
+  getBoldCheckoutLink(tenantId: string, planId: string): Observable<any> {
+    return this.http.get<any>(`${this.api}/payments/bold/links`, {
+      params: { tenantId, planId }
+    });
+  }
+
 }

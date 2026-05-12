@@ -46,6 +46,9 @@ export class SettingsComponent implements OnInit {
 
     return invitadosActivos >= maxPermitidos;
   });
+
+  // Pago
+  lastPayLink = signal('');
   
   saving = signal(false);
   savingColors = signal(false);
@@ -188,13 +191,19 @@ export class SettingsComponent implements OnInit {
   }
 
   requestUpgrade(plan: Plan): void {
-    this.api.requestUpgrade({ planId: plan.id, paymentMethod: 'nequi', amountPaid: plan.priceMonthly })
-      .subscribe({
-        next: () => this.showPayInfo.set(true),
-        error: (err) => {
-          this.toastService.error('Error', err.error?.message || 'No se pudo solicitar el upgrade');
-        }
-      });
+    const tenantId = this.tenant()?.id;
+    if (!tenantId) return;
+
+    this.api.getBoldCheckoutLink(tenantId, plan.id).subscribe({
+      next: (res) => {
+        this.lastPayLink.set(res.link);
+        window.open(res.link, '_blank');
+        this.showPayInfo.set(true);
+      },
+      error: (err) => {
+        this.toastService.error('Error', err.error?.message || 'No se pudo obtener el link de pago.');
+      }
+    });
   }
 
   loadUsers(): void {

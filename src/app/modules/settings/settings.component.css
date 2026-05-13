@@ -174,42 +174,221 @@ input:focus {
     gap: 0.875rem;
 }
 
+/* PLAN CARD */
 .plan-card {
     border: 1.5px solid var(--border-color);
     border-radius: 12px;
-    padding: 1.25rem;
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    background: var(--bg-primary, #ffffff);
+}
+
+.plan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.15);
+    border-color: var(--brand-primary-light, var(--brand-primary));
 }
 
 .plan-card.current {
     border-color: var(--brand-primary);
     background: var(--brand-primary-10);
+    position: relative;
+}
+
+/* Badde de "Plan actual" opcional */
+.plan-card.current::before {
+    content: "Plan actual";
+    position: absolute;
+    top: -12px;
+    right: 1rem;
+    background: var(--brand-primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
 }
 
 .plan-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.95rem;
+    font-size: 1rem;
+    letter-spacing: -0.2px;
 }
 
 .plan-price {
     font-family: 'Sora', sans-serif;
-    font-size: 1.3rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: var(--text-primary);
+    margin: 0.25rem 0;
 }
 
 .plan-price span {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 400;
     color: var(--text-secondary);
 }
 
-.plan-users {
-    font-size: 0.78rem;
+.plan-price .plan-price-free {
+    font-size: 1.3rem;
+    color: var(--brand-primary);
+}
+
+/* Features mejoradas */
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.plan-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
+    line-height: 1.4;
+    padding: 0.25rem 0;
+    transition: all 0.2s ease;
+}
+
+.plan-features li:hover {
+    transform: translateX(4px);
+    color: var(--text-primary);
+}
+
+/* Features con check */
+.plan-features li:has(✅) {
+    color: var(--text-primary);
+}
+
+.plan-features li:has(✅)::before {
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--brand-primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 0.25rem;
+}
+
+/* Ocultar el emoji original y usar el check personalizado */
+.plan-features li:has(✅) {
+    text-indent: 0;
+}
+
+/* Features con X */
+.plan-features li:has(❌) {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.plan-features li:has(❌)::before {
+    content: "✕";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: #e5e7eb;
+    color: #9ca3af;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 0.25rem;
+}
+
+/* Botón de acción */
+.plan-card .plan-button {
+    margin-top: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: center;
+}
+
+.plan-card .plan-button-primary {
+    background: var(--brand-primary);
+    color: white;
+    border: none;
+}
+
+.plan-card .plan-button-primary:hover {
+    background: var(--brand-primary-dark);
+    transform: translateY(-2px);
+}
+
+.plan-card .plan-button-secondary {
+    background: transparent;
+    color: var(--brand-primary);
+    border: 1.5px solid var(--brand-primary);
+}
+
+.plan-card .plan-button-secondary:hover {
+    background: var(--brand-primary-10);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .plan-card {
+        padding: 1.25rem;
+        gap: 0.75rem;
+    }
+    
+    .plan-price {
+        font-size: 1.5rem;
+    }
+    
+    .plan-features {
+        gap: 0.6rem;
+    }
+    
+    .plan-features li {
+        font-size: 0.8rem;
+    }
+}
+
+/* Para el plan destacado (opcional) */
+.plan-card.featured {
+    border-color: var(--brand-primary);
+    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+}
+
+/* Tooltip para features bloqueadas (opcional) */
+.plan-features li:has(❌):hover {
+    cursor: help;
+    opacity: 1;
+}
+
+.plan-features li:has(❌):hover::after {
+    content: "Disponible en planes superiores";
+    position: absolute;
+    background: #1f2937;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-left: 2rem;
+    margin-top: -1.5rem;
+    z-index: 10;
 }
 
 .btn-upgrade {
@@ -223,7 +402,6 @@ input:focus {
     cursor: pointer;
     margin-top: 0.5rem;
 }
-
 .plan-active-badge {
     background: #dcfce7;
     color: #16a34a;
@@ -234,26 +412,22 @@ input:focus {
     text-align: center;
     margin-top: 0.5rem;
 }
-
 .pay-info {
     background: #fffbeb;
     border: 1px solid #fcd34d;
     border-radius: 12px;
     padding: 1.25rem;
 }
-
 .pay-info h4 {
     margin: 0 0 0.5rem;
     font-size: 0.95rem;
     color: #92400e;
 }
-
 .pay-info p {
     margin: 0 0 0.75rem;
     font-size: 0.875rem;
     color: #78350f;
 }
-
 .pay-detail {
     font-size: 0.875rem;
     color: #78350f;
@@ -443,7 +617,7 @@ input:focus {
         max-width: 95%;
         max-height: 85vh;
     }
-    
+
     .modal-overlay {
         align-items: center;
         padding: 0.5rem;
@@ -640,21 +814,21 @@ input:disabled {
 
 /* USUARIO INACTIVO */
 .user-row.inactive-user {
-  opacity: 0.6;
-  background: var(--bg-hover);
+    opacity: 0.6;
+    background: var(--bg-hover);
 }
 
 .user-row.inactive-user .user-avatar {
-  filter: grayscale(0.5);
+    filter: grayscale(0.5);
 }
 
 .user-row.inactive-user .action-btn {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .user-row.inactive-user .action-btn:hover {
-  transform: none;
+    transform: none;
 }
 
 /* EXPIRA PRONTO */
@@ -667,3 +841,4 @@ input:disabled {
     color: #ef4444;
     font-weight: 500;
 }
+

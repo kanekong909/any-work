@@ -4,7 +4,6 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { Product, Category } from '../../core/models';
 import { ToastService } from '../../core/services/toast.service';
-import { ToastComponent } from '@shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-inventory',
@@ -155,7 +154,11 @@ export class InventoryComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.toastService.error('Error', err.error?.message || 'Error al guardar producto.');
+        if (err.error?.code === 'PRODUCT_LIMIT_REACHED') {
+          this.toastService.error('Límite alcanzado', err.error.message);
+        } else {
+          this.toastService.error('Error', err.error?.message || 'Error al guardar producto.');
+        }
       }
     });
   }
@@ -223,6 +226,7 @@ export class InventoryComponent implements OnInit {
     this.editingCatName = cat.name;
     this.editingCatColor = cat.color || '#6366f1';
   }
+
   saveEditCategory(): void {
     const cat = this.editingCat();
     if (!cat || !this.editingCatName.trim()) return;

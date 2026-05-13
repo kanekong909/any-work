@@ -38,6 +38,9 @@ export interface Plan {
   id: string; name: string; displayName: string;
   priceMonthly: number; maxUsers: number;
   maxExpensesPerMonth: number;
+  maxProducts: number;
+  maxSalesPerMonth: number;
+  maxCustomers: number;
   features: Record<string, boolean>; isActive: boolean;
 }
 export interface TenantSubscription {

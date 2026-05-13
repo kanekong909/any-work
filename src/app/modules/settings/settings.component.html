@@ -119,18 +119,18 @@
         <div class="plan-card" [class.current]="subscription()?.plan?.name === plan.name">
             <div class="plan-name">{{ plan.displayName }}</div>
             <div class="plan-price">
-            @if (plan.priceMonthly === 0) { Gratis }
-            @else { {{ plan.priceMonthly | number }} <span>/mes</span> }
+                @if (plan.priceMonthly === 0) { Gratis }
+                @else { ${{ plan.priceMonthly | number }} <span>/mes</span> }
             </div>
-            <div class="plan-users">
-            {{ plan.maxUsers === -1 ? 'Usuarios ilimitados' : 'Hasta ' + plan.maxUsers + ' usuarios' }}
-            </div>
-            @if (subscription()?.plan?.name !== plan.name && plan.priceMonthly > 0) {
-            <button class="btn-upgrade" (click)="requestUpgrade(plan)">Solicitar upgrade</button>
-            }
-            @if (subscription()?.plan?.name === plan.name) {
-            <span class="plan-active-badge">Plan actual</span>
-            }
+            <ul class="plan-features">
+                <li>{{ plan.maxUsers === -1 ? 'Usuarios ilimitados' : 'Hasta ' + plan.maxUsers + ' usuarios' }}</li>
+                <li>{{ plan.maxProducts === -1 ? 'Productos ilimitados' : 'Hasta ' + plan.maxProducts + ' productos' }}</li>
+                <li>{{ plan.maxSalesPerMonth === -1 ? 'Ventas ilimitadas' : 'Hasta ' + plan.maxSalesPerMonth + ' ventas/mes' }}</li>
+                <li>{{ plan.maxCustomers === -1 ? 'Clientes ilimitados' : 'Hasta ' + plan.maxCustomers + ' clientes' }}</li>
+                <li>{{ plan.features['reports'] ? '✅ Reportes y CSV' : '❌ Reportes y CSV' }}</li>
+                <li>{{ plan.features['customers'] ? '✅ Módulo clientes' : '❌ Módulo clientes' }}</li>
+            </ul>
+            ...
         </div>
         }
     </div>

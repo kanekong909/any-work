@@ -6,7 +6,7 @@ import { ApiService } from '../../core/services/api.service';
 @Component({
   selector: 'app-customers',
   standalone: true,
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule],
   templateUrl: './customers.component.html',  
   styleUrl: './customers.component.css'
 })
@@ -127,7 +127,14 @@ export class CustomersComponent implements OnInit {
         this.saving.set(false); 
         this.showToast('Cliente guardado'); 
       }, 
-      error: () => this.saving.set(false) 
+      error: (err) => {
+        this.saving.set(false);
+        if (err.error?.code === 'CUSTOMER_LIMIT_REACHED') {
+          this.showToast(err.error.message);
+        } else {
+          this.showToast('Error al guardar cliente');
+        }
+      } 
     });
   }
 

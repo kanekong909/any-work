@@ -278,11 +278,14 @@ export class SalesComponent implements OnInit {
         this.saving.set(false); 
         this.toast.success('Venta Exitosa', 'La transacción fue guardada y el inventario actualizado.');
       },
-      error: (err) => { 
-        this.saving.set(false);
-        const errorMsg = err.error?.message || 'Error al procesar la venta';
-        this.toast.error('Error en POS', errorMsg); 
+     error: (err) => {
+      this.saving.set(false);
+      if (err.error?.code === 'SALES_LIMIT_REACHED') {
+        this.toast.error('Límite de ventas', err.error.message);
+      } else {
+        this.toast.error('Error en POS', err.error?.message || 'Error al procesar la venta');
       }
+    }
     });
   }
 

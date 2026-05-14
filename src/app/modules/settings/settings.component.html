@@ -104,48 +104,58 @@
 <div class="section">
     <h2 class="section-title">Tu plan</h2>
     <div class="card">
-    @if (subscription()) {
-        <div class="plan-current">
-            <div class="plan-badge">{{ subscription()!.plan.displayName }}</div>
-            <div class="plan-expires">
-                @if (subscription()!.expiresAt) {
-                    <div><strong>Vence:</strong> {{ subscription()!.expiresAt | date:'fullDate' }}</div>
-                } @else { Sin vencimiento }
+        @if (subscription()) {
+            <div class="plan-current">
+                <div class="plan-badge">{{ subscription()!.plan.displayName }}</div>
+                <div class="plan-expires">
+                    @if (subscription()!.expiresAt) {
+                        <div><strong>Vence:</strong> {{ subscription()!.expiresAt | date:'fullDate' }}</div>
+                    } @else { Sin vencimiento }
+                </div>
             </div>
-        </div>
-    }
-    <div class="plans-grid">
-        @for (plan of plans(); track plan.id) {
-        <div class="plan-card" [class.current]="subscription()?.plan?.name === plan.name">
-            <div class="plan-name">{{ plan.displayName }}</div>
-            <div class="plan-price">
-                @if (plan.priceMonthly === 0) { Gratis }
-                @else { ${{ plan.priceMonthly | number }} <span>/mes</span> }
-            </div>
-            <ul class="plan-features">
-                <li>{{ plan.maxUsers === -1 ? 'Usuarios ilimitados' : 'Hasta ' + plan.maxUsers + ' usuarios' }}</li>
-                <li>{{ plan.maxProducts === -1 ? 'Productos ilimitados' : 'Hasta ' + plan.maxProducts + ' productos' }}</li>
-                <li>{{ plan.maxSalesPerMonth === -1 ? 'Ventas ilimitadas' : 'Hasta ' + plan.maxSalesPerMonth + ' ventas/mes' }}</li>
-                <li>{{ plan.maxCustomers === -1 ? 'Clientes ilimitados' : 'Hasta ' + plan.maxCustomers + ' clientes' }}</li>
-                <li>{{ plan.features['reports'] ? '✅ Reportes y CSV' : '❌ Reportes y CSV' }}</li>
-                <li>{{ plan.features['customers'] ? '✅ Módulo clientes' : '❌ Módulo clientes' }}</li>
-            </ul>
-            ...
-        </div>
         }
-    </div>
-        @if (showPayInfo()) {
-        <div class="pay-info">
-            <h4>¡Pago en proceso! 🎉</h4>
-            <p>Se abrió el checkout de Bold en una nueva pestaña. Una vez pagues, tu plan se activará automáticamente.</p>
-            <p style="font-size:0.82rem; color: var(--text-secondary);">
-            ¿No se abrió la ventana?
-            <a [href]="lastPayLink()" target="_blank" style="color: var(--brand-primary);">Haz clic aquí</a>
-            </p>
-            <div style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-secondary);">
-            ⏳ Tu plan se activará automáticamente al confirmar el pago.
-            </div>
+        
+        <div class="plans-grid">
+            @for (plan of plans(); track plan.id) {
+                <div class="plan-card" [class.current]="subscription()?.plan?.name === plan.name">
+                    <div class="plan-name">{{ plan.displayName }}</div>
+                    <div class="plan-price">
+                        @if (plan.priceMonthly === 0) { Gratis }
+                        @else { {{ plan.priceMonthly | number:'1.0-0' }} <span>/mes</span> }
+                    </div>
+                    <ul class="plan-features">
+                        <li>{{ plan.maxUsers === -1 ? 'Usuarios ilimitados' : 'Hasta ' + plan.maxUsers + ' usuarios' }}</li>
+                        <li>{{ plan.maxProducts === -1 ? 'Productos ilimitados' : 'Hasta ' + plan.maxProducts + ' productos' }}</li>
+                        <li>{{ plan.maxSalesPerMonth === -1 ? 'Ventas ilimitadas' : 'Hasta ' + plan.maxSalesPerMonth + ' ventas/mes' }}</li>
+                        <li>{{ plan.maxCustomers === -1 ? 'Clientes ilimitados' : 'Hasta ' + plan.maxCustomers + ' clientes' }}</li>
+                        <li>{{ plan.features['reports'] ? '✅ Reportes y CSV' : '❌ Reportes y CSV' }}</li>
+                        <li>{{ plan.features['customers'] ? '✅ Módulo clientes' : '❌ Módulo clientes' }}</li>
+                    </ul>
+                    
+                    <!-- BOTÓN DE UPGRADE -->
+                    @if (subscription()?.plan?.name !== plan.name) {
+                        <button class="btn-upgrade" (click)="requestUpgrade(plan)">
+                            Actualizar a {{ plan.displayName }}
+                        </button>
+                    } @else {
+                        <button class="btn-current" disabled>Plan actual</button>
+                    }
+                </div>
+            }
         </div>
+        
+        @if (showPayInfo()) {
+            <div class="pay-info">
+                <h4>¡Pago en proceso! 🎉</h4>
+                <p>Se abrió el checkout de Bold en una nueva pestaña. Una vez pagues, tu plan se activará automáticamente.</p>
+                <p style="font-size:0.82rem; color: var(--text-secondary);">
+                    ¿No se abrió la ventana?
+                    <a [href]="lastPayLink()" target="_blank" style="color: var(--brand-primary);">Haz clic aquí</a>
+                </p>
+                <div style="margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-secondary);">
+                    ⏳ Tu plan se activará automáticamente al confirmar el pago.
+                </div>
+            </div>
         }
     </div>
 </div>
@@ -155,48 +165,68 @@
     <h2 class="section-title">Equipo de trabajo</h2>
     <div class="card">
         <div class="users-header">
-            <p class="users-desc">Gestiona quién tiene acceso a tu negocio y con qué rol.</p>
-            <button class="btn-primary" 
-                [disabled]="alcanzoLimiteUsuarios()" 
-                (click)="openUserModal()"
-                [title]="alcanzoLimiteUsuarios() ? 'Has alcanzado el límite de usuarios de tu plan' : 'Invitar nuevo miembro'">
-                @if (alcanzoLimiteUsuarios()) {
-                🔒 Límite alcanzado
-                } @else {
-                + Invitar usuario
+            <div class="users-info">
+                <p class="users-desc">Gestiona quién tiene acceso a tu negocio y con qué rol.</p>
+                <div class="users-stats">
+                    <span class="stat-badge active">
+                        <img src="/assets/icons/check.svg" alt="Activos" style="width: 12px;">
+                        Activos: {{ activeUsersCount() }}
+                    </span>
+                    <span class="stat-badge inactive">⭕ Inactivos: {{ inactiveUsersCount() }}</span>
+                    <span class="stat-badge total">
+                        <img src="/assets/icons/users.svg" alt="Total de Usuarios" style="width: 12px;"> 
+                        Total: {{ totalUsersCount() }}
+                    </span>
+                </div>
+            </div>
+            <div class="tooltip-container">
+                <button class="btn-primary" 
+                    [disabled]="alcanzoLimiteUsuarios()" 
+                    (click)="openUserModal()"
+                    [title]="alcanzoLimiteUsuarios() ? 'Has alcanzado el límite de usuarios de tu plan' : ''">
+                    @if (alcanzoLimiteUsuarios()) {
+                    🔒 Límite alcanzado
+                    } @else {
+                    + Invitar usuario
+                    }
+                </button>
+                @if (showTooltip() && !alcanzoLimiteUsuarios() && remainingUsers() > 0 && remainingUsers() !== 999999) {
+                    <div class="custom-tooltip">
+                        {{ tooltipMessage() }}
+                    </div>
                 }
-            </button>
+            </div>
         </div>
         
-        <!-- LISTA DE USUARIO -->
+        <!-- LISTA DE USUARIOS -->
         <div class="users-list">
             @for (u of users(); track u.id) {
                 <div class="user-row" [class.inactive-user]="!u.isActive">
-                <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
-                    {{ u.name.charAt(0).toUpperCase() }}
-                </div>
-                <div class="user-info">
-                    <span class="user-name">{{ u.name }}</span>
-                    <span class="user-email">{{ u.email }}</span>
-                </div>
-                <span class="role-badge" [class]="u.role">{{ getRoleLabel(u.role) }}</span>
-                <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
-                    {{ u.isActive ? 'Activo' : 'Inactivo' }}
-                </span>
-                <div class="user-actions">
-                    @if (userToDelete()?.id === u.id) {
-                    <span style="font-size: 0.8rem; color: #ef4444; font-weight: 500;">¿Desactivar ?</span>
-                    <button class="action-btn" (click)="confirmDeleteUser()" style="color: #10b981;" title="Confirmar">✓</button>
-                    <button class="action-btn" (click)="cancelDelete()" style="color: #ef4444;" title="Cancelar">✕</button>
-                    } @else {
-                    <button class="action-btn" (click)="openUserModal(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Editar'">
-                        <img src="assets/icons/edit.svg" alt="Editar" style="width: 20px; height: 20px;">
-                    </button>
-                    <button class="action-btn" (click)="prepareDelete(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Eliminar'">
-                        <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 20px; height: 20px;">
-                    </button>
-                    }
-                </div>
+                    <div class="user-avatar" [style.background]="tenant()?.primaryColor || '#6366f1'">
+                        {{ u.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">{{ u.name }}</span>
+                        <span class="user-email">{{ u.email }}</span>
+                    </div>
+                    <span class="role-badge" [class]="u.role">{{ getRoleLabel(u.role) }}</span>
+                    <span class="status-dot" [class.active]="u.isActive" [class.inactive]="!u.isActive">
+                        {{ u.isActive ? 'Activo' : 'Inactivo' }}
+                    </span>
+                    <div class="user-actions">
+                        @if (userToDelete()?.id === u.id) {
+                            <span style="font-size: 0.8rem; color: #ef4444; font-weight: 500;">¿Desactivar?</span>
+                            <button class="action-btn" (click)="confirmDeleteUser()" style="color: #10b981;" title="Confirmar">✓</button>
+                            <button class="action-btn" (click)="cancelDelete()" style="color: #ef4444;" title="Cancelar">✕</button>
+                        } @else {
+                            <button class="action-btn" (click)="openUserModal(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Editar'">
+                                <img src="assets/icons/edit.svg" alt="Editar" style="width: 20px; height: 20px;">
+                            </button>
+                            <button class="action-btn" (click)="prepareDelete(u)" [disabled]="!u.isActive" [title]="!u.isActive ? 'Usuario inactivo' : 'Eliminar'">
+                                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 20px; height: 20px;">
+                            </button>
+                        }
+                    </div>
                 </div>
             }
             @if (users().length === 0) {

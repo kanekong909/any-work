@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, AfterViewInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,7 +20,7 @@ const COLORS = [
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css' 
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
   colors = COLORS;
   plans = signal<Plan[]>([]);
   subscription = signal<TenantSubscription | null>(null);
@@ -60,6 +60,49 @@ export class SettingsComponent implements OnInit {
     ).length;
 
     return invitadosActivos >= maxPermitidos;
+  });
+
+  // Aviso Usuarios
+  activeUsersCount = computed(() => {
+    return this.users().filter(u => u.isActive === true).length;
+  });
+  inactiveUsersCount = computed(() => {
+      return this.users().filter(u => u.isActive === false).length;
+  });
+  totalUsersCount = computed(() => {
+      return this.users().length;
+  });
+
+  // Tooltip
+  showTooltip = signal(false);
+  tooltipTimeout: any;
+  // Usuarios restantes disponibles
+  remainingUsers = computed(() => {
+      const sub = this.subscription();
+      const maxPermitidos = sub?.plan?.maxUsers || 5;
+      
+      if (maxPermitidos === -1) return Infinity;
+      
+      // Solo contar usuarios activos que no son admin (los que ocupan licencia)
+      const usuariosOcupados = this.users().filter(u => 
+          u.isActive && ['cashier', 'warehouse', 'supervisor'].includes(u.role)
+      ).length;
+      
+      return maxPermitidos - usuariosOcupados;
+  });
+  // Mensaje profesional para el tooltip
+  tooltipMessage = computed(() => {
+      const remaining = this.remainingUsers();
+      const activeUsers = this.activeUsersCount();
+      const maxUsers = this.subscription()?.plan?.maxUsers || 5;
+      
+      if (remaining <= 0) return '';
+      
+      if (remaining === 1) {
+          return `📋 Te falta 1 puesto por cubrir en tu equipo. Actualmente tienes ${activeUsers} colaborador(es) activo(s) de ${maxUsers} disponibles.`;
+      }
+      
+      return `📋 Te faltan ${remaining} puestos por cubrir en tu equipo. Actualmente tienes ${activeUsers} colaborador(es) activo(s) de ${maxUsers} disponibles.`;
   });
 
   // Pago
@@ -111,8 +154,28 @@ export class SettingsComponent implements OnInit {
     this.initSubscriptionCheck();
   }
 
+  // Tooltip
+  ngAfterViewInit(): void {
+      // Mostrar tooltip después de 3 segundos si hay usuarios disponibles
+      setTimeout(() => {
+          if (this.remainingUsers() > 0 && this.remainingUsers() !== Infinity) {
+              this.showTooltip.set(true);
+              
+              // Ocultar tooltip después de 6 segundos
+              setTimeout(() => {
+                  this.showTooltip.set(false);
+              }, 6000);
+          }
+      }, 3000);
+  }
+
   ngOnDestroy(): void {
     this.pollSubscription?.unsubscribe();
+
+    // Limpiar timeout del tooltip
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
   }
 
   initSubscriptionCheck(): void {

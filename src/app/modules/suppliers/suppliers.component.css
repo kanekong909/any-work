@@ -134,13 +134,17 @@ tr:hover td {
     border-radius: 16px;
     width: 100%;
     max-width: 480px;
+    max-height: 85vh; /* Altura máxima del 85% de la ventana */
+    height: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -164,8 +168,9 @@ tr:hover td {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    overflow-y: auto; /* Scroll interno si el contenido excede */
+    flex: 1;
 }
-
 .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -352,4 +357,32 @@ input:focus {
         flex-direction: column;
         align-items: center;
     }
+}
+
+/* TELEFONO */
+/* Evitar saltos de línea en la columna teléfono de la tabla */
+td:nth-child(3) {
+    white-space: nowrap;
+    font-family: monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+}
+
+/* Estilos para el input de teléfono */
+.phone-input {
+    font-family: monospace;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.phone-input::placeholder {
+    font-family: system-ui, -apple-system, sans-serif;
+    letter-spacing: normal;
+}
+
+.phone-hint {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
 }

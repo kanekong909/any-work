@@ -109,13 +109,28 @@ export class SuppliersComponent implements OnInit {
   openModal(s?: any): void {
     this.editing.set(s || null);
     this.form = s ? { ...s } : { name: '', contactPerson: '', phone: '', email: '', address: '', notes: '' };
+
+    if (this.form.phone) {
+      const phoneForDisplay = this.formatExistingPhone(this.form.phone);
+      this.form.displayPhone = phoneForDisplay;
+    } else {
+      this.form.displayPhone = '';
+    }
+
     this.showModal.set(true);
   }
+
   
   closeModal(): void { this.showModal.set(false); }
 
   save(): void {
     if (!this.form.name) return;
+    
+    // Asegurar que el telefono sea solo numeros antes de guardar
+    if (this.form.phone) {
+      this.form.phone = this.cleanPhoneNumber(this.form.phone);
+    }
+
     this.saving.set(true);
     const obs = this.editing()
       ? this.api.updateSupplier(this.editing().id, this.form)
@@ -173,5 +188,43 @@ export class SuppliersComponent implements OnInit {
       month: 'short', 
       year: 'numeric' 
     });
+  }
+
+  formatPhoneForDisplay(value: string): string {
+    if (!value) return '';
+    
+    // Eliminar todo lo que no sea número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplicar formato Colombia: 3-3-4
+    if (numbers.length <= 3) {
+        return numbers;
+    } else if (numbers.length <= 6) {
+        return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
+    } else {
+        return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 10)}`;
+    }
+}
+
+  // Limpia el teléfono (solo números) para guardar en BD
+  cleanPhoneNumber(phone: string): string {
+      if (!phone) return '';
+      return phone.replace(/\D/g, '');
+  }
+
+  // Maneja el input del teléfono en el formulario
+  onPhoneInput(event: any): void {
+      let rawValue = event.target.value;
+      // Guardar solo números en el form (para la BD)
+      const cleanNumbers = this.cleanPhoneNumber(rawValue);
+      this.form.phone = cleanNumbers;
+      // Actualizar el valor visual del input con formato
+      event.target.value = this.formatPhoneForDisplay(cleanNumbers);
+  }
+
+  formatExistingPhone(phone: string): string {
+      if (!phone) return '';
+      const cleanNumbers = this.cleanPhoneNumber(phone);
+      return this.formatPhoneForDisplay(cleanNumbers);
   }
 }

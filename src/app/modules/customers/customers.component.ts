@@ -57,7 +57,7 @@ export class CustomersComponent implements OnInit {
     this.searchTimer = setTimeout(() => this.load(), 300); 
   }
 
-  
+  // Telefono
   formatPhoneForDisplay(value: string): string {
     if (!value) return '';
     

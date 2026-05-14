@@ -33,6 +33,9 @@ export class DashboardComponent implements OnInit {
   expenseCount = signal(0);
   lowStockCount = signal(0);
 
+  // Saludos
+  greeting = signal('');
+
   kpis = signal([
     {
       id: 'today-sales',
@@ -63,6 +66,8 @@ export class DashboardComponent implements OnInit {
   constructor(private api: ApiService, private auth: AuthService) {}
 
   ngOnInit(): void {
+    this.greeting.set(this.getGreetingByHour());
+
     const saved = localStorage.getItem('dashboard-kpis');
 
     if (saved) {
@@ -203,5 +208,18 @@ export class DashboardComponent implements OnInit {
       'dashboard-kpis',
       JSON.stringify(current.map(k => k.id))
     );
+  }
+
+  // Saludos
+  getGreetingByHour(): string {
+      const hour = new Date().getHours();
+      
+      if (hour >= 5 && hour < 12) {
+          return 'Buenos días';
+      } else if (hour >= 12 && hour < 18) {
+          return 'Buenas tardes';
+      } else {
+          return 'Buenas noches';
+      }
   }
 }

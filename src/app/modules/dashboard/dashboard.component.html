@@ -1,7 +1,7 @@
 <div class="dashboard">
     <div class="page-header">
         <div>
-            <h1 class="page-title">Buenos días, {{ user()?.name?.split(' ')?.[0] }} 👋</h1>
+            <h1 class="page-title">{{ greeting() }}, {{ user()?.name?.split(' ')?.[0] }} 👋</h1>
             <p class="page-sub">{{ today | date:'dd/MM/yyyy h:mm a' }} · {{ tenant()?.businessName }}</p>
         </div>
     </div>
@@ -82,32 +82,35 @@
 
     <div class="dashboard-grid">
         <!-- Ventas recientes -->
-        <div class="panel">
-            <div class="panel-header">
-                <h3>Ventas recientes</h3>
-                <a routerLink="/sales" class="panel-link">Ver todas →</a>
-            </div>
-            @if (recentSales().length === 0) {
-            <div class="empty-state">
-                <span>💰</span>
-                <p>No hay ventas hoy aún</p>
-                <a routerLink="/sales" class="btn-outline">Registrar venta</a>
-            </div>
-            } @else {
-            <div class="sale-list">
-                @for (sale of recentSales(); track sale.id) {
-                <div class="sale-item">
-                    <div class="sale-num"># {{ sale.saleNumber }}</div>
-                    <div class="sale-info">
-                        <span class="sale-customer">{{ sale.customerName || 'Cliente general' }}</span>
-                        <span class="sale-time">{{ sale.createdAt | date:'h:mm a' }}</span>
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Ventas recientes</h3>
+                    <a routerLink="/sales" class="panel-link">Ver todas →</a>
+                </div>
+                @if (recentSales().length === 0) {
+                <div class="empty-state">
+                    <span>💰</span>
+                    <p>No hay ventas hoy aún</p>
+                    <a routerLink="/sales" class="btn-outline">Registrar venta</a>
+                </div>
+                } @else {
+                <div class="sale-list">
+                    @for (sale of recentSales(); track sale.id) {
+                    <div class="sale-item">
+                        <div class="sale-num"># {{ sale.saleNumber }}</div>
+                        <div class="sale-info">
+                            <span class="sale-customer">{{ sale.customerName || 'Cliente general' }}</span>
+                            <div class="sale-datetime">
+                                <span class="sale-date">{{ sale.createdAt | date:'d \'de\' MMMM \'de\' yyyy' }}</span>
+                                <span class="sale-time">{{ sale.createdAt | date:'h:mm a' }}</span>
+                            </div>
+                        </div>
+                        <div class="sale-amount">{{ sale.total | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
                     </div>
-                    <div class="sale-amount">{{ sale.total | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                    }
                 </div>
                 }
             </div>
-            }
-        </div>
 
         <!-- Inventario bajo -->
         <div class="panel">

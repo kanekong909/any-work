@@ -482,3 +482,22 @@
     height: 280px;
     width: 100%;
 }
+
+/* NUEVOS ESTILOS DE VENTAS RECIENTES */
+.sale-datetime {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.sale-date {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+.sale-time {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-family: monospace;
+}

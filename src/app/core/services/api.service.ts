@@ -51,6 +51,12 @@ export class ApiService {
   deleteCategory(id: string): Observable<any> {
     return this.http.delete(`${this.api}/products/categories/${id}`);
   }
+  // Imagen
+  uploadProductImage(productId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<any>(`${this.api}/products/${productId}/image`, formData);
+  }
 
   // ── Expenses ──────────────────────────────────────────────
   getExpenses(params?: any): Observable<PagedResponse<Expense> & { sum: number }> {

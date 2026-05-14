@@ -41,6 +41,12 @@ export class InventoryComponent implements OnInit {
   catToDelete = signal<any>(null);
   catColors = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f59e0b','#10b981','#3b82f6','#d97706'];
 
+  // Imagen producto
+  uploadingImage = signal(false);
+  previewUrl = signal<string | null>(null);
+  pendingImageFile: File | null = null;
+  viewingImage = signal<string | null>(null);
+
   form: any = this.emptyForm();
 
   private toastService = inject(ToastService);
@@ -134,6 +140,8 @@ export class InventoryComponent implements OnInit {
   openModal(p?: Product): void {
     this.editingProduct.set(p || null);
     this.form = p ? { ...p } : this.emptyForm();
+    this.previewUrl.set(p?.imageUrl || null);
+    this.pendingImageFile = null;
     this.showModal.set(true);
   }
   closeModal(): void { this.showModal.set(false); }
@@ -145,8 +153,13 @@ export class InventoryComponent implements OnInit {
     const obs = this.editingProduct()
       ? this.api.updateProduct(this.editingProduct()!.id, this.form)
       : this.api.createProduct(this.form);
+
     obs.subscribe({
-      next: () => {
+      next: async (saved) => {
+        // Si hay imagen pendiente, subirla ahora que tenemos el ID
+        if (this.pendingImageFile) {
+          await this.uploadPendingImage(saved.id);
+        }
         this.loadProducts();
         this.closeModal();
         this.saving.set(false);
@@ -154,11 +167,7 @@ export class InventoryComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        if (err.error?.code === 'PRODUCT_LIMIT_REACHED') {
-          this.toastService.error('Límite alcanzado', err.error.message);
-        } else {
-          this.toastService.error('Error', err.error?.message || 'Error al guardar producto.');
-        }
+        this.toastService.error('Error', err.error?.message || 'Error al guardar producto.');
       }
     });
   }
@@ -261,6 +270,35 @@ export class InventoryComponent implements OnInit {
         this.catToDelete.set(null);
         this.toastService.error('Error', 'No se pudo eliminar la categoría.');
       }
+    });
+  }
+
+  // Imagen
+  onImageChange(file: File): void {
+    if (!file) return;
+    this.pendingImageFile = file;
+    // Preview local antes de subir
+    const reader = new FileReader();
+    reader.onload = (e) => this.previewUrl.set(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async uploadPendingImage(productId: string): Promise<void> {
+    if (!this.pendingImageFile) return;
+    return new Promise((resolve) => {
+      this.uploadingImage.set(true);
+      this.api.uploadProductImage(productId, this.pendingImageFile!).subscribe({
+        next: (res) => {
+          this.form.imageUrl = res.imageUrl;
+          this.uploadingImage.set(false);
+          resolve();
+        },
+        error: () => {
+          this.uploadingImage.set(false);
+          this.toastService.error('Error', 'No se pudo subir la imagen.');
+          resolve();
+        }
+      });
     });
   }
 }

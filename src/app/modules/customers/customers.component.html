@@ -17,40 +17,42 @@
 
     <!-- TABLA -->
     <div class="table-wrap">
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Dirección</th>
-                <th>Registrado</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @for (c of customers(); track c.id) {
-            <tr>
-            <td class="name-cell">{{ c.name }}</td>
-            <td>{{ c.phone || '—' }}</td>
-            <td>{{ c.email || '—' }}</td>
-            <td>{{ c.address || '—' }}</td>
-            <td>{{ formatLocalDate(c.createdAt) }}</td>
-            <td>
-                <button class="action-btn" (click)="openModal(c)">
-                <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
-                </button>
-                <button class="action-btn del" (click)="toDelete.set(c.id)">
-                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
-                </button>
-            </td>
-            </tr>
-        }
-        @if (customers().length === 0) {
-            <tr><td colspan="6" class="empty-row">No hay clientes registrados</td></tr>
-        }
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Registrado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (c of customers(); track c.id) {
+                    <tr>
+                        <td class="name-cell">{{ c.name }}</td>
+                        <td>{{ c.phone || '—' }}</td>
+                        <td class="email-cell">{{ c.email || '—' }}</td>
+                        <td class="address-cell">{{ c.address || '—' }}</td>
+                        <td class="date-cell">{{ formatLocalDate(c.createdAt) }}</td>
+                        <td class="actions-cell">
+                            <button class="action-btn edit" (click)="openModal(c)">
+                                <img src="assets/icons/edit.svg" alt="Editar">
+                            </button>
+                            <button class="action-btn del" (click)="toDelete.set(c.id)">
+                                <img src="assets/icons/delete.svg" alt="Eliminar">
+                            </button>
+                        </td>
+                    </tr>
+                }
+                @if (customers().length === 0) {
+                    <tr>
+                        <td colspan="6" class="empty-row">No hay clientes registrados</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 
     <!-- Paginación -->
@@ -102,44 +104,75 @@
     }
 </div>
 
+<!-- Nuevo cliente & Editar -->
 @if (showModal()) {
     <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-        <h3>{{ editing() ? 'Editar cliente' : 'Nuevo cliente' }}</h3>
-        <button (click)="closeModal()">✕</button>
-        </div>
-        <div class="modal-body">
-        <div class="field">
-            <label>Nombre *</label>
-            <input type="text" [(ngModel)]="form.name" placeholder="Nombre completo">
-        </div>
-        <div class="field-row">
-            <div class="field">
-            <label>Teléfono</label>
-            <input type="tel" [(ngModel)]="form.phone" placeholder="300 000 0000">
+        <div #modalContainer
+                class="modal" 
+                (click)="$event.stopPropagation()"
+                tabindex="-1"
+                role="dialog"
+                aria-label="Formulario de cliente"
+            >
+            <div class="modal-header">
+                <h3>{{ editing() ? 'Editar cliente' : 'Nuevo cliente' }}</h3>
+                <button (click)="closeModal()">✕</button>
             </div>
-            <div class="field">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+            <div class="modal-body">
+                <!-- Nombre -->
+                <div class="field">
+                    <label>Nombre *</label>
+                    <input type="text" [(ngModel)]="form.name" placeholder="Nombre completo">
+                </div>
+                <div class="field-row">
+                    <!-- Telefono -->
+                    <div class="field">
+                        <label>Teléfono</label>
+                        <input 
+                            type="tel" 
+                            [(ngModel)]="form.displayPhone"
+                            (input)="onPhoneInput($event)"
+                            name="phone"
+                            placeholder="300 123 4567"
+                            maxlength="12"
+                            class="phone-input"
+                        >
+                        <small class="phone-hint">Formato: 300 123 4567</small>
+                    </div>
+                    <!-- Correo -->
+                    <div class="field">
+                        <label>Email</label>
+                        <input 
+                            type="email" 
+                            [(ngModel)]="form.email"
+                            (input)="onEmailInput($event)"
+                            (blur)="emailTouched.set(true); validateEmail(form.email)"
+                            placeholder="correo@ejemplo.com"
+                            [class.invalid]="emailError()"
+                        >
+                        @if (emailError()) {
+                            <small class="error-message">{{ emailError() }}</small>
+                        }
+                    </div>
+                </div>
+                <!-- Direccion -->
+                <div class="field">
+                    <label>Dirección</label>
+                    <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
+                </div>
+                <!-- Notas -->
+                <div class="field">
+                    <label>Notas</label>
+                    <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+                <button class="btn-primary" [disabled]="saving()" (click)="save()">
+                    {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear cliente') }}
+                </button>
             </div>
         </div>
-        <div class="field">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
-        </div>
-        <div class="field">
-            <label>Notas</label>
-            <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
-        </div>
-        </div>
-        <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-primary" [disabled]="saving()" (click)="save()">
-            {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear cliente') }}
-        </button>
-        </div>
-    </div>
     </div>
 }
 

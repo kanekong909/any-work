@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
@@ -21,6 +21,7 @@ export class CustomersComponent implements OnInit {
   search = '';
   form: any = {};
   private searchTimer: any;
+  @ViewChild('modalContainer') modalContainer!: ElementRef<HTMLDivElement>;
 
   // Paginación
   currentPage = signal(1);
@@ -28,6 +29,10 @@ export class CustomersComponent implements OnInit {
   totalItems = signal(0);
   totalPages = () => Math.ceil(this.totalItems() / this.itemsPerPage());
   pageSizeOptions = [10, 25, 50, 100];
+
+  // Verificacion email
+  emailError = signal('');
+  emailTouched = signal(false);
 
   constructor(private api: ApiService) {}
   ngOnInit(): void { this.load(); }
@@ -52,7 +57,41 @@ export class CustomersComponent implements OnInit {
     this.searchTimer = setTimeout(() => this.load(), 300); 
   }
 
-  // Métodos de paginación
+  
+  formatPhoneForDisplay(value: string): string {
+    if (!value) return '';
+    
+    // Eliminar todo lo que no sea número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplicar formato Colombia: 3-3-4
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 6) {
+      return `${numbers.slice(0, 3)} ${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)} ${numbers.slice(3, 6)} ${numbers.slice(6, 10)}`;
+    }
+  }
+
+  cleanPhoneNumber(phone: string): string {
+    if (!phone) return '';
+    return phone.replace(/\D/g, '');
+  }
+
+  onPhoneInput(event: any): void {
+    let rawValue = event.target.value;
+    const cleanNumbers = this.cleanPhoneNumber(rawValue);
+    this.form.phone = cleanNumbers;
+    event.target.value = this.formatPhoneForDisplay(cleanNumbers);
+  }
+
+  formatExistingPhone(phone: string): string {
+    if (!phone) return '';
+    const cleanNumbers = this.cleanPhoneNumber(phone);
+    return this.formatPhoneForDisplay(cleanNumbers);
+  }
+
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
@@ -107,8 +146,27 @@ export class CustomersComponent implements OnInit {
   }
 
   openModal(c?: any): void {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+
     this.editing.set(c || null);
     this.form = c ? { ...c } : { name: '', phone: '', email: '', address: '', notes: '' };
+
+    // Resetear validaciones
+    this.emailError.set('');
+    this.emailTouched.set(false);
+    
+    // Si hay teléfono, formatearlo para mostrar en el input
+    if (this.form.phone) {
+      const phoneForDisplay = this.formatExistingPhone(this.form.phone);
+      // Guardamos el formateado en una propiedad temporal para el input
+      this.form.displayPhone = phoneForDisplay;
+    } else {
+      this.form.displayPhone = '';
+    }
+    
     this.showModal.set(true);
   }
   
@@ -116,7 +174,21 @@ export class CustomersComponent implements OnInit {
 
   save(): void {
     if (!this.form.name) return;
+
+    // Validar email antes de guardar
+    this.emailTouched.set(true);
+    if (!this.validateEmail(this.form.email)) {
+      this.showToast('Por favor, corrige el correo electrónico');
+      return;
+    }
+
     this.saving.set(true);
+    
+    // Asegurar que el teléfono sea solo números antes de guardar
+    if (this.form.phone) {
+      this.form.phone = this.cleanPhoneNumber(this.form.phone);
+    }
+    
     const obs = this.editing()
       ? this.api.updateCustomer(this.editing().id, this.form)
       : this.api.createCustomer(this.form);
@@ -136,6 +208,13 @@ export class CustomersComponent implements OnInit {
         }
       } 
     });
+
+    // Enfocar el modal
+    setTimeout(() => {
+      if (this.modalContainer) {
+        this.modalContainer.nativeElement.focus();
+      }
+    })
   }
 
   confirmDelete(): void {
@@ -178,5 +257,24 @@ export class CustomersComponent implements OnInit {
       month: 'short', 
       year: 'numeric' 
     });
+  }
+
+  // Email verification
+  validateEmail(email: string): boolean {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const isValid = !email || emailRegex.test(email);
+      
+      if (this.emailTouched() && email && !isValid) {
+          this.emailError.set('Ingresa un correo válido (ej: usuario@dominio.com)');
+      } else {
+          this.emailError.set('');
+      }
+      
+      return isValid;
+  }
+  onEmailInput(event: any): void {
+      this.form.email = event.target.value;
+      this.emailTouched.set(true);
+      this.validateEmail(this.form.email);
   }
 }

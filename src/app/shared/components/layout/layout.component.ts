@@ -19,6 +19,13 @@ export class LayoutComponent {
 
   userInitial = computed(() => this.user()?.name?.charAt(0).toUpperCase() || 'U');
 
+  // Señal de nuevo usuario
+  showProfileTip = signal(false);
+
+  ngOnInit(): void {
+    this.checkNewUserTip();
+  }
+
     navItems = computed<{
     path: string;
     icon: string;
@@ -99,6 +106,29 @@ export class LayoutComponent {
 
   getLogoUrl(url: string): string {
     return url || '';
+  }
+
+  // Checar nuevo usuario
+  checkNewUserTip(): void {
+    const tenant = this.tenant();
+    if (!tenant) return;
+
+    // Solo mostrar si no tiene logo y no ha visto el tip antes
+    const tipSeen = localStorage.getItem(`tip_profile_${tenant.id}`);
+    if (tipSeen || tenant.logoUrl) return;
+
+    // Mostrar después de 3 segundos
+    setTimeout(() => {
+      this.showProfileTip.set(true);
+      // Auto-ocultar después de 8 segundos
+      setTimeout(() => this.dismissTip(), 8000);
+    }, 3000);
+  }
+
+  dismissTip(): void {
+    const tenant = this.tenant();
+    if (tenant) localStorage.setItem(`tip_profile_${tenant.id}`, 'true');
+    this.showProfileTip.set(false);
   }
 
   logout(): void { this.auth.logout(); }

@@ -232,11 +232,13 @@
         <div class="field">
             <label>Rol</label>
             <select [(ngModel)]="userForm.role">
-            <option value="admin">Administrador — acceso completo</option>
-            <option value="cashier">Cajero — solo ventas</option>
-            <option value="warehouse">Bodega — solo inventario</option>
-            <option value="supervisor">Supervisor — solo lectura</option>
+                @for (role of availableRoles(); track role.value) {
+                <option [value]="role.value">{{ role.label }}</option>
+                }
             </select>
+            @if (availableRoles().length === 1) {
+                <span class="field-hint">Activa más módulos en el onboarding para habilitar más roles.</span>
+            }
         </div>
         @if (editingUser()) {
             <div class="field">

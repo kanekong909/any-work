@@ -1,8 +1,15 @@
 <div class="dashboard">
     <div class="page-header">
-        <div>
+       <div>
             <h1 class="page-title">{{ greeting() }}, {{ user()?.name?.split(' ')?.[0] }} 👋</h1>
-            <p class="page-sub">{{ today | date:'dd/MM/yyyy h:mm a' }} · {{ tenant()?.businessName }}</p>
+            <p class="page-sub">
+                <span class="date-time">{{ today | date:'dd/MM/yyyy h:mm a' }}</span>
+                <span class="separator">•</span>
+                <span class="business-wrapper">
+                    <span class="business-icon">🏢</span>
+                    <span class="business-name">{{ tenant()?.businessName }}</span>
+                </span>
+            </p>
         </div>
     </div>
 

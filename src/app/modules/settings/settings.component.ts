@@ -29,7 +29,22 @@ export class SettingsComponent implements OnInit {
   users = signal<any[]>([]);
   
   tenant = this.auth.currentTenant;
-  
+
+  // Verificar roles
+  availableRoles = computed(() => {
+    const modules = this.tenant()?.enabledModules || {};
+    
+    const roles = [
+      { value: 'admin', label: 'Administrador — acceso completo', always: true },
+      { value: 'cashier', label: 'Cajero — ventas', module: 'sales' },
+      { value: 'warehouse', label: 'Bodega — inventario', module: 'inventory' },
+      { value: 'supervisor', label: 'Supervisor — solo lectura', always: true },
+    ];
+
+    return roles.filter(r => r.always || modules[r.module!]);
+  });
+
+  // Limite de usuario
   alcanzoLimiteUsuarios = computed(() => {
     const sub = this.subscription();
     const listaUsuarios = this.users(); 

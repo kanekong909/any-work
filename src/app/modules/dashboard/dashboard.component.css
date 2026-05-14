@@ -24,11 +24,53 @@
 .page-sub {
     color: var(--text-secondary);
     margin: 0;
-    font-size: 0.95rem;
-    text-transform: capitalize;
-    opacity: 0.85;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
 }
 
+.date-time {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+}
+
+.separator {
+    opacity: 0.5;
+    font-weight: 300;
+    font-size: 1rem;
+}
+
+.business-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.08));
+    padding: 0.2rem 0.8rem 0.2rem 0.6rem;
+    border-radius: 40px;
+    border: 0.5px solid rgba(99, 102, 241, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.business-icon {
+    font-size: 0.85rem;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.business-name {
+    font-weight: 600;
+    background-color: black;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    letter-spacing: -0.02em;
+    font-size: 1rem;
+}
 /* KPI GRID */
 .kpi-grid {
     display: flex;

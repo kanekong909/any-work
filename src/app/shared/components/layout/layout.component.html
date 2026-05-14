@@ -23,6 +23,17 @@
                             </div>
                             }
                         </div>
+
+                        <!-- Tooltip de bienvenida -->
+                        @if (showProfileTip() && !sidebarCollapsed()) {
+                        <div class="profile-tip">
+                            <button class="tip-close" (click)="dismissTip()">✕</button>
+                            <div class="tip-icon">👋</div>
+                            <p class="tip-text">¡Personaliza tu negocio! Sube tu logo y colores en <strong>Configuración</strong>.</p>
+                            <a routerLink="/settings" class="tip-btn" (click)="dismissTip()">Ir a Configuración →</a>
+                        </div>
+                        }
+
                         @if (!sidebarCollapsed()) {
                         <div class="brand-text">
                             <span class="brand-name">{{ tenant()?.businessName || 'NexoAdmin' }}</span>

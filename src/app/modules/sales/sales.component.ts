@@ -5,6 +5,7 @@ import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 // import { ToastComponent } from '@shared/components/toast/toast.component';
 import { Product, Sale } from '../../core/models';
+import { AuthService } from '@core/services/auth.service';
 
 @Component({
   selector: 'app-sales',
@@ -47,6 +48,12 @@ export class SalesComponent implements OnInit {
   paymentType = 'cash';
   customerName = '';
   private searchTimer: any;
+  showCartError = signal(false);
+
+  // Productos suggested
+  suggestedProducts = signal<Product[]>([]);
+  selectedPosCategory = signal<string>('');
+  categories = signal<any[]>([]);
 
   // Editar & Eliminar
   saleToDelete = signal<string | null>(null);
@@ -67,7 +74,7 @@ export class SalesComponent implements OnInit {
 
   subtotal = () => this.cart().reduce((a, i) => a + i.unitPrice * i.quantity, 0);
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private auth: AuthService) {}
 
   ngOnInit(): void { 
     this.loadSales(); 
@@ -220,6 +227,8 @@ export class SalesComponent implements OnInit {
     this.customerSearchResults.set([]);
     this.selectedCustomer.set(null); 
     this.showPOS.set(true);
+    this.loadSuggestedProducts();
+    this.api.getCategories().subscribe(c => this.categories.set(c));
   }
   closePOS(): void { this.showPOS.set(false); }
 
@@ -263,7 +272,12 @@ export class SalesComponent implements OnInit {
   }
 
   completeSale(): void {
-    if (!this.cart().length) return;
+    if (!this.cart().length) {
+      this.showCartError.set(true);
+      setTimeout(() => this.showCartError.set(false), 3000);
+      return;
+    }
+    this.showCartError.set(false);
     this.saving.set(true);
     
     this.api.createSale({
@@ -278,14 +292,14 @@ export class SalesComponent implements OnInit {
         this.saving.set(false); 
         this.toast.success('Venta Exitosa', 'La transacción fue guardada y el inventario actualizado.');
       },
-     error: (err) => {
-      this.saving.set(false);
-      if (err.error?.code === 'SALES_LIMIT_REACHED') {
-        this.toast.error('Límite de ventas', err.error.message);
-      } else {
-        this.toast.error('Error en POS', err.error?.message || 'Error al procesar la venta');
+      error: (err) => {
+        this.saving.set(false);
+        if (err.error?.code === 'SALES_LIMIT_REACHED') {
+          this.toast.error('Límite de ventas', err.error.message);
+        } else {
+          this.toast.error('Error en POS', err.error?.message || 'Error al procesar la venta');
+        }
       }
-    }
     });
   }
 
@@ -299,6 +313,7 @@ export class SalesComponent implements OnInit {
       notes: sale.notes || '',
       subtotal: Number(sale.subtotal),
       discount: Number(sale.discount),
+      items: sale.items.map(i => ({ ...i }))
     };
   }
 
@@ -306,7 +321,13 @@ export class SalesComponent implements OnInit {
     const sale = this.saleToEdit();
     if (!sale) return;
     this.savingEdit.set(true);
-    this.api.updateSale(sale.id, this.editForm).subscribe({
+    this.api.updateSale(sale.id, {
+      customerName: this.editForm.customerName,
+      paymentType: this.editForm.paymentType,
+      notes: this.editForm.notes,
+      discount: this.editForm.discount,
+      items: this.editForm.items,
+    }).subscribe({
       next: () => {
         this.loadSales();
         this.saleToEdit.set(null);
@@ -349,5 +370,62 @@ export class SalesComponent implements OnInit {
 
   onDiscountChange(val: string): void {
     this.editForm = { ...this.editForm, discount: this.parseCOP(val) };
+  }
+
+  // PRODUCTOS
+  updateEditQty(index: number, delta: number): void {
+    const items = [...this.editForm.items];
+    const newQty = Number(items[index].quantity) + delta;
+    if (newQty <= 0) {
+      items.splice(index, 1);
+    } else {
+      items[index] = {
+        ...items[index],
+        quantity: newQty,
+        subtotal: newQty * items[index].unitPrice,
+      };
+    }
+    // Recalcular subtotal
+    const subtotal = items.reduce((a: number, i: any) => a + Number(i.unitPrice) * Number(i.quantity), 0);
+    this.editForm = { ...this.editForm, items, subtotal };
+  }
+  removeEditItem(index: number): void {
+    const items = [...this.editForm.items];
+    items.splice(index, 1);
+    const subtotal = items.reduce((a: number, i: any) => a + Number(i.unitPrice) * Number(i.quantity), 0);
+    this.editForm = { ...this.editForm, items, subtotal };
+  }
+  loadSuggestedProducts(): void {
+    const params: any = { limit: 12 };
+    if (this.selectedPosCategory()) params.categoryId = this.selectedPosCategory();
+    this.api.getProducts(params).subscribe(r => {
+      this.suggestedProducts.set(r.items.filter((p: Product) => p.stock > 0));
+    });
+  }
+
+  // FORMATEAR FECHA - 14 de mayo de 2027
+  formatDateLong(dateString: string): string {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+      });
+  }
+
+  // SABER QUIEN INGRESO LA VENTA
+  isAdmin(): boolean {
+    const role = this.auth.currentUser()?.role;
+    return role === 'admin' || role === 'superadmin';
+  }
+  isCurrentUser(cashierId: string): boolean {
+    return cashierId === this.auth.currentUser()?.id;
+  }
+  getCashierColor(name: string): string {
+    if (!name) return '#6366f1';
+    const colors = ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f59e0b','#10b981','#3b82f6','#d97706'];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
   }
 }

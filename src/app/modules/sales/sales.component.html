@@ -60,6 +60,7 @@
             <th>Total</th>
             <th>Fecha</th>
             <th>Hora</th>
+            @if (isAdmin()) { <th>Registró</th> }
             <th>Acciones</th>
             </tr>
         </thead>
@@ -69,10 +70,34 @@
                 <td class="sale-num">{{ s.saleNumber }}</td>
                 <td>{{ s.customerName || 'General' }}</td>
                 <td><span class="pay-badge">{{ getPayLabel(s.paymentType) }}</span></td>
-                <td>{{ s.items.length || 0 }} items</td>
+                <td class="items-cell">
+                    @for (item of s.items.slice(0, 2); track item.productId) {
+                    <div class="item-line">
+                        <span class="item-qty">x{{ +item.quantity | number:'1.0-0' }}</span>
+                        <span class="item-name">{{ item.productName }}</span>
+                    </div>
+                    }
+                    @if (s.items.length > 2) {
+                    <div class="item-more">+{{ s.items.length - 2 }} más</div>
+                    }
+                </td>
                 <td class="amount">{{ s.total | currency:'COP':'$':'1.0-0' }}</td>
                 <td class="date">{{ s.createdAt | date:'yyyy-MM-dd' }}</td>
                 <td class="time">{{ s.createdAt | date:'h:mm a' }}</td>
+                @if (isAdmin()) {
+                    <td>
+                    <div class="cashier-cell">
+                        <div class="cashier-avatar" [style.background]="getCashierColor(s.cashier?.name || '')">
+                        {{ (s.cashier?.name ?? '?').charAt(0).toUpperCase() }}
+                        </div>
+                        @if (!isCurrentUser(s.cashierId)) {
+                        <span class="cashier-name">{{ s.cashier?.name || 'Desconocido' }}</span>
+                        } @else {
+                        <span class="cashier-name you-badge">Tú</span>
+                        }
+                    </div>
+                    </td>
+                }
                 <td>
                     <div class="actions-wrapper">
                     <button class="action-btn" (click)="openEdit(s)">
@@ -86,7 +111,11 @@
             </tr>
             }
             @if (sales().length === 0) {
-            <tr><td colspan="8" class="empty-row">No se encontraron ventas con los filtros aplicados</td></tr>
+                <tr>
+                    <td [attr.colspan]="isAdmin() ? 9 : 8" class="empty-row">
+                        No se encontraron ventas con los filtros aplicados
+                    </td>
+                </tr>
             }
         </tbody>
         </table>
@@ -172,26 +201,71 @@
 
             <!-- Carrito -->
             <div class="cart">
-                @if (cart().length === 0) {
-                <div class="cart-empty">
-                    <span>🛒</span>
-                    <p>Agrega productos buscándolos arriba</p>
-                </div>
+            @if (cart().length === 0) {
+                <div class="cart-empty-with-suggestions">
+                @if (categories().length > 0) {
+                    <div class="pos-categories">
+                    <button class="cat-chip" [class.active]="selectedPosCategory() === ''"
+                        (click)="selectedPosCategory.set(''); loadSuggestedProducts()">
+                        Todos
+                    </button>
+                    @for (cat of categories(); track cat.id) {
+                        <button class="cat-chip" [class.active]="selectedPosCategory() === cat.id"
+                        [style.border-color]="selectedPosCategory() === cat.id ? (cat.color || 'var(--brand-primary)') : ''"
+                        [style.color]="selectedPosCategory() === cat.id ? (cat.color || 'var(--brand-primary)') : ''"
+                        (click)="selectedPosCategory.set(cat.id); loadSuggestedProducts()">
+                        {{ cat.name }}
+                        </button>
+                    }
+                    </div>
+                }
+
+                <!-- Grid de productos sugeridos -->
+                @if (suggestedProducts().length > 0) {
+                    <div class="suggested-grid">
+                    @for (p of suggestedProducts(); track p.id) {
+                        <button class="suggested-card" (click)="addToCart(p)">
+                        @if (p.imageUrl) {
+                            <img [src]="p.imageUrl" alt="{{ p.name }}" class="suggested-img">
+                        } @else {
+                            <div class="suggested-img-placeholder">📦</div>
+                        }
+                        <div class="suggested-info">
+                            <span class="suggested-name">{{ p.name }}</span>
+                            <span class="suggested-price">{{ formatCOP(p.salePrice) }}</span>
+                            <span class="suggested-stock" [class.low]="p.stock <= p.minStock">
+                            Stock: {{ p.stock | number:'1.0-0' }}
+                            </span>
+                        </div>
+                        </button>
+                    }
+                    </div>
                 } @else {
+                    <div class="cart-empty">
+                        <span>🛒</span>
+                        <p>Agrega productos buscándolos arriba</p>
+                    </div>
+                    @if (showCartError()) {
+                    <div class="cart-error">
+                        ⚠️ Debes agregar al menos un producto para completar la venta.
+                    </div>
+                    }
+                }
+                </div>
+            } @else {
                 @for (item of cart(); track item.productId) {
                 <div class="cart-item">
                     <div class="ci-name">{{ item.productName }}</div>
                     <div class="ci-controls">
-                        <button (click)="updateQty(item, -1)">−</button>
-                        <span>{{ item.quantity }}</span>
-                        <button (click)="updateQty(item, 1)">+</button>
+                    <button (click)="updateQty(item, -1)">−</button>
+                    <span>{{ item.quantity }}</span>
+                    <button (click)="updateQty(item, 1)">+</button>
                     </div>
-                    <div class="ci-price">{{ (item.unitPrice * item.quantity) | currency:'COP':'symbol-narrow':'1.0-0'
-                        }}</div>
+                    <div class="ci-price">{{ (item.unitPrice * item.quantity) | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
                     <button class="ci-remove" (click)="removeFromCart(item.productId)">✕</button>
                 </div>
                 }
-                }
+            }
             </div>
 
             <!-- Totales -->
@@ -242,20 +316,24 @@
 
                     <!-- Resultados del desplegable de clientes -->
                     @if (customerSearchResults().length > 0) {
-                    <div class="search-dropdown"
-                        style="position: absolute; top: 100%; left: 0; width: 100%; z-index: 1010; background: var(--bg-card, #fff); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; margin-top: 4px; max-height: 200px; overflow-y: auto;">
-                        @for (c of customerSearchResults(); track c.id) {
-                        <button class="search-item" (click)="selectCustomer(c)"
-                            style="display: flex; flex-direction: column; width: 100%; padding: 10px 12px; text-align: left; background: none; border: none; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer;">
-                            <span style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary, #111);">{{
-                                c.name }}</span>
-                            @if (c.phone) {
-                            <span style="font-size: 0.75rem; color: var(--text-secondary, #666);">📱 {{ c.phone
-                                }}</span>
+                        <div class="search-dropdown customer-dropdown">
+                            @for (c of customerSearchResults(); track c.id) {
+                            <button class="search-item customer-item" (click)="selectCustomer(c)">
+                                <div class="customer-avatar">
+                                {{ c.name.charAt(0).toUpperCase() }}
+                                </div>
+                                <div class="customer-item-info">
+                                <span class="customer-item-name">{{ c.name }}</span>
+                                @if (c.phone) {
+                                    <span class="customer-item-phone">📱 {{ c.phone }}</span>
+                                }
+                                @if (c.email) {
+                                    <span class="customer-item-phone">✉️ {{ c.email }}</span>
+                                }
+                                </div>
+                            </button>
                             }
-                        </button>
-                        }
-                    </div>
+                        </div>
                     }
                 </div>
             </div>
@@ -263,7 +341,7 @@
 
         <div class="pos-footer">
             <button class="btn-cancel" (click)="closePOS()">Cancelar</button>
-            <button class="btn-primary" [disabled]="cart().length === 0 || saving()" (click)="completeSale()">
+            <button class="btn-primary" [disabled]="saving()" (click)="completeSale()">
                 {{ saving() ? 'Procesando...' : 'Completar venta →' }}
             </button>
         </div>
@@ -292,10 +370,13 @@
 @if (saleToEdit()) {
 <div class="modal-overlay" (click)="saleToEdit.set(null)">
     <div class="modal" (click)="$event.stopPropagation()">
+        <!-- MODAL HEADER -->
         <div class="modal-header">
             <h3>Editar venta {{ saleToEdit()!.saleNumber }}</h3>
             <button (click)="saleToEdit.set(null)">✕</button>
         </div>
+
+        <!-- MODAL BODY -->
         <div class="modal-body">
             <div class="field">
                 <label>Cliente</label>
@@ -315,6 +396,26 @@
                 <label>Notas</label>
                 <input type="text" [(ngModel)]="editForm.notes" placeholder="Opcional">
             </div>
+            <div class="field">
+            <label>Productos vendidos</label>
+                <div class="edit-items">
+                    @for (item of editForm.items; track item.productId; let i = $index) {
+                    <div class="edit-item-row">
+                        <span class="edit-item-name">{{ item.productName }}</span>
+                        <div class="edit-item-controls">
+                        <button type="button" (click)="updateEditQty(i, -1)">−</button>
+                        <span>x{{ +item.quantity | number:'1.0-0' }}</span>
+                        <button type="button" (click)="updateEditQty(i, 1)">+</button>
+                        </div>
+                        <span class="edit-item-price">{{ formatCOP(item.unitPrice * item.quantity) }}</span>
+                        <button type="button" class="edit-item-remove" (click)="removeEditItem(i)">✕</button>
+                    </div>
+                    }
+                    @if (editForm.items?.length === 0) {
+                    <div class="edit-items-empty">No hay productos</div>
+                    }
+                </div>
+            </div>
             <div class="field-row">
                 <div class="field">
                     <label>Descuento</label>
@@ -328,6 +429,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- MODAL FOOTER -->
         <div class="modal-footer">
             <button class="btn-cancel" (click)="saleToEdit.set(null)">Cancelar</button>
             <button class="btn-primary" [disabled]="savingEdit()" (click)="saveEdit()">

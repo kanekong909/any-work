@@ -310,6 +310,14 @@ export class SettingsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.userForm.name || !this.userForm.email) return;
     if (!this.editingUser() && !this.userForm.password) return;
     this.savingUser.set(true);
+
+     console.log('📝 Datos a enviar:', {
+        name: this.userForm.name,
+        email: this.userForm.email,
+        role: this.userForm.role,
+        password: this.userForm.password ? '***' : '(empty)',
+        isEditing: this.editingUser()
+    });
     
     const obs = this.editingUser()
       ? this.api.updateUser(this.editingUser().id, this.userForm)

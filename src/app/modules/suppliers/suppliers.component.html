@@ -102,64 +102,72 @@
     }
 </div>
 
+<!-- Nuevo & Editar -->
 @if (showModal()) {
     <div class="modal-overlay" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
+        <!-- MODAL HEADER -->
         <div class="modal-header">
-        <h3>{{ editing() ? 'Editar proveedor' : 'Nuevo proveedor' }}</h3>
-        <button (click)="closeModal()">✕</button>
+            <h3>{{ editing() ? 'Editar proveedor' : 'Nuevo proveedor' }}</h3>
+            <button (click)="closeModal()">✕</button>
         </div>
+
+        <!-- MODAL BODY -->
         <div class="modal-body">
-        <div class="field">
-            <label>Nombre empresa *</label>
-            <input type="text" [(ngModel)]="form.name" placeholder="Ej: Distribuidora El Mayorista">
-        </div>
-        <div class="field">
-            <label>Persona de contacto</label>
-            <input type="text" [(ngModel)]="form.contactPerson" placeholder="Nombre del contacto">
-        </div>
-        <div class="field-row">
+            <!-- Nombre Empresa -->
             <div class="field">
-                <label>Teléfono</label>
-                <input 
-                    type="tel" 
-                    [(ngModel)]="form.displayPhone"
-                    (input)="onPhoneInput($event)"
-                    name="phone"
-                    placeholder="300 123 4567"
-                    maxlength="12"
-                    class="phone-input"
-                >
-                <small class="phone-hint">Formato: 300 123 4567</small>
+                <label>Nombre empresa *</label>
+                <input type="text" [(ngModel)]="form.name" placeholder="Ej: Distribuidora El Mayorista">
             </div>
+            <!-- Persona de Contacto -->
             <div class="field">
-                <label>Email</label>
-                <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+                <label>Persona de contacto</label>
+                <input type="text" [(ngModel)]="form.contactPerson" placeholder="Nombre del contacto">
             </div>
+            <!-- Telefono & Email -->
+            <div class="field-row">
+                <div class="field">
+                    <label>Teléfono</label>
+                    <input 
+                        type="tel" 
+                        [(ngModel)]="form.displayPhone"
+                        (input)="onPhoneInput($event)"
+                        name="phone"
+                        placeholder="300 123 4567"
+                        maxlength="12"
+                        class="phone-input"
+                    >
+                    <small class="phone-hint">Formato: 300 123 4567</small>
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+                </div>
+            </div>
+            <!-- Dirección -->
             <div class="field">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="form.email" placeholder="correo@ejemplo.com">
+                <label>Dirección</label>
+                <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
+            </div>
+            <!-- Notas -->
+            <div class="field">
+                <label>Notas</label>
+                <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
             </div>
         </div>
-        <div class="field">
-            <label>Dirección</label>
-            <input type="text" [(ngModel)]="form.address" placeholder="Dirección">
-        </div>
-        <div class="field">
-            <label>Notas</label>
-            <input type="text" [(ngModel)]="form.notes" placeholder="Opcional">
-        </div>
-        </div>
+
+        <!-- MODAL FOOTER -->
         <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-primary" [disabled]="saving()" (click)="save()">
-            {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear proveedor') }}
-        </button>
+            <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+            <button class="btn-primary" [disabled]="saving()" (click)="save()">
+                {{ saving() ? 'Guardando...' : (editing() ? 'Actualizar' : 'Crear proveedor') }}
+            </button>
         </div>
     </div>
     </div>
 }
 
+<!-- Eliminar  -->
 @if (toDelete()) {
     <div class="modal-overlay" (click)="toDelete.set(null)">
     <div class="confirm-modal" (click)="$event.stopPropagation()">

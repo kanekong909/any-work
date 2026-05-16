@@ -415,9 +415,10 @@
 
 .sale-amount {
     font-weight: 700;
-    color: var(--text-primary);
+    color: rgba(1, 169, 26, 0.804);
     font-size: 0.95rem;
     letter-spacing: -0.02em;
+    text-decoration:dashed;
 }
 
 /* STOCK */

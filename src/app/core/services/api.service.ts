@@ -146,6 +146,17 @@ export class ApiService {
     return this.http.delete(`${this.api}/suppliers/${id}`); 
   }
 
+  // Suppliers Receipts
+  getReceipts(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.api}/receipts`, { params });
+  }
+  createReceipt(data: any): Observable<any> {
+    return this.http.post<any>(`${this.api}/receipts`, data);
+  }
+  deleteReceipt(id: string): Observable<any> {
+    return this.http.delete(`${this.api}/receipts/${id}`);
+  }
+
   // ── Reports ───────────────────────────────────────────────────
   getReportSummary(from: string, to: string): Observable<any> {
     return this.http.get<any>(`${this.api}/reports/summary`, { params: { from, to } });

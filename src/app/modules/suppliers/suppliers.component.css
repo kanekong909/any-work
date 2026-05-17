@@ -57,30 +57,32 @@
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 14px;
-    overflow: auto;
+    /* overflow: auto; */
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 0.85rem;
 }
 
 th {
-    font-size: 0.75rem;
+    text-align: left;
+    /* font-size: 0.75rem; */
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.875rem 1rem;
-    text-align: left;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
 }
 
 td {
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border-color);
     font-size: 0.875rem;
     color: var(--text-primary);
+    vertical-align: middle;
 }
 
 tr:last-child td {
@@ -132,10 +134,8 @@ tr:hover td {
 .modal {
     background: var(--bg-card);
     border-radius: 16px;
-    width: 100%;
-    max-width: 480px;
-    max-height: 85vh; /* Altura máxima del 85% de la ventana */
-    height: auto;
+    max-height: 90vh;
+    /* Altura máxima del 85% de la ventana */
     display: flex;
     flex-direction: column;
 }
@@ -165,12 +165,16 @@ tr:hover td {
 
 .modal-body {
     padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    overflow-y: auto; /* Scroll interno si el contenido excede */
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* gap: 1rem; */
+    overflow-y: auto;
+    /* Scroll interno si el contenido 
+    excede */
+    max-height: calc(90vh - 120px);
     flex: 1;
 }
+
 .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -385,4 +389,334 @@ td:nth-child(3) {
     font-size: 0.7rem;
     color: var(--text-secondary);
     margin-top: 0.25rem;
+}
+
+/* RECEPCIONES & PROVEEDORES */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    color: var(--text-primary);
+}
+
+.tab.active {
+    color: var(--brand-primary);
+    border-bottom-color: var(--brand-primary);
+    font-weight: 600;
+}
+
+/* Estilos para tabla de items en recepciones */
+.item-line {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    padding: 1px 0;
+}
+
+.item-qty {
+    background: var(--brand-primary-10);
+    color: var(--brand-primary);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.72rem;
+}
+
+.item-name {
+    color: var(--text-secondary);
+}
+
+.item-more {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+}
+
+/* Badges de estado */
+.status-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.status-badge.complete {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.partial {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-badge.damaged {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Modal grande para recepciones */
+.modal-lg {
+    max-width: 700px;
+}
+
+/* Header de items de recepción */
+
+.receipt-items-header {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.items-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* Botón agregar item */
+.btn-add-item {
+    background: var(--brand-primary-10);
+    color: var(--brand-primary);
+    border: 1.5px solid var(--brand-primary);
+    padding: 0.4rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: auto;
+    transition: all 0.2s;
+}
+
+.btn-add-item:hover {
+    background: var(--brand-primary);
+    color: white;
+}
+
+/* Card para cada item */
+.receipt-item-card {
+    background: var(--bg-page);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.receipt-item-card:hover {
+    border-color: var(--brand-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Header de cada card */
+.receipt-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.item-number {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--brand-primary);
+    background: var(--brand-primary-10);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* Cuerpo de cada card */
+.receipt-item-body {
+    padding: 1rem;
+}
+
+/* Grid para campos en fila (3 columnas) */
+.field-row-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Grupos de campo */
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.field-group-full {
+    grid-column: 1 / -1;
+    margin-bottom: 0.75rem;
+}
+
+/* Labels */
+.field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+/* Inputs y selects */
+.field-input,
+.field-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: white;
+    transition: all 0.2s;
+}
+
+.field-input:focus,
+.field-select:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px var(--brand-primary-20);
+}
+
+.field-input:hover,
+.field-select:hover {
+    border-color: var(--brand-primary);
+}
+
+/* Botón eliminar item */
+.btn-remove-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-remove-item:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Mensaje cuando no hay items */
+.receipt-empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    padding: 1.5rem;
+    background: var(--bg-page);
+    border-radius: 10px;
+    border: 2px dashed var(--border-color);
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+    .field-row-3 {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .receipt-item-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .btn-remove-item {
+        align-self: center;
+    }
+    
+    .modal-lg {
+        max-width: 95%;
+        margin: 0 1rem;
+    }
+}
+
+/* Estilos para las nuevas columnas */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.notes-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-cost {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    margin-left: 0.25rem;
+}
+
+/* Responsive para tabla en móvil */
+@media (max-width: 768px) {
+    .table-wrap {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 800px;
+    }
+}
+
+/* BUSQUEDA RECEPCIONES */
+/* Wrapper para input de búsqueda con botón de limpiar */
+.search-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 300px;
+}
+
+.search-wrapper .search-input {
+    width: 100%;
+    padding-right: 30px;
+}
+
+.search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 50%;
+}
+
+.search-clear:hover {
+    background: var(--bg-surface);
+    color: var(--text-primary);
 }

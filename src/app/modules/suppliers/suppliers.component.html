@@ -1,104 +1,265 @@
 <div class="page">
     <!-- HEADER -->
     <div class="page-header">
-    <div>
-        <h1 class="page-title">Proveedores</h1>
-        <p class="page-sub">{{ total() }} proveedores registrados</p>
-    </div>
-    <button class="btn-primary" (click)="openModal()">+ Nuevo proveedor</button>
-    </div>
-
-    <!-- FILTROS -->
-    <div class="filters">
-    <input  type="search" 
-            [(ngModel)]="search" 
-            (ngModelChange)="currentPage.set(1);onSearch()"
-            placeholder="Buscar proveedor..." class="search-input">
+        <div>
+            <h1 class="page-title">Proveedores</h1>
+            <p class="page-sub">{{ total() }} proveedores registrados</p>
+        </div>
+        <button 
+            class="btn-primary" 
+            (click)="activeTab() === 'suppliers' ? openModal() : openReceiptModal()">
+            {{ activeTab() === 'suppliers' ? '+ Nuevo proveedor' : '+ Nueva recepción' }}
+        </button>
     </div>
 
-    <!-- TABLA -->
-    <div class="table-wrap">
-    <table>
-        <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Contacto</th>
-            <th>Teléfono</th>
-            <th>Email</th>
-            <th>Registrado</th>
-            <th></th></tr>
-        </thead>
-        <tbody>
-        @for (s of suppliers(); track s.id) {
+    <!-- TABS (Proveedor/Recepciones) -->
+    <div class="tabs">
+        <button class="tab" [class.active]="activeTab() === 'suppliers'"
+            (click)="activeTab.set('suppliers')">
+            🏢 Proveedores
+        </button>
+        <button class="tab" [class.active]="activeTab() === 'receipts'"
+            (click)="activeTab.set('receipts'); loadReceipts()">
+            📦 Recepciones
+        </button>
+    </div>
+
+    <!-- CONTENIDO PROVEEDORES -->
+    @if (activeTab() === 'suppliers') {
+        <!-- FILTROS -->
+        <div class="filters">
+        <input  type="search" 
+                [(ngModel)]="search" 
+                (ngModelChange)="currentPage.set(1);onSearch()"
+                placeholder="Buscar proveedor..." class="search-input">
+        </div>
+
+        <!-- TABLA -->
+        <div class="table-wrap">
+        <table>
+            <thead>
             <tr>
-            <td class="name-cell">{{ s.name }}</td>
-            <td>{{ s.contactPerson || '—' }}</td>
-            <td>{{ s.phone || '—' }}</td>
-            <td>{{ s.email || '—' }}</td>
-            <td>{{ parseDate(s.createdAt) | date:'d MMM yyyy' }}</td>
-            <td>
-                <button class="action-btn" (click)="openModal(s)">
-                <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
-                </button>
-                <button class="action-btn delete" (click)="toDelete.set(s.id)">
-                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
-                </button>
-            </td>
-            </tr>
-        }
-        @if (suppliers().length === 0) {
-            <tr><td colspan="6" class="empty-row">No hay proveedores registrados</td></tr>
-        }
-        </tbody>
-    </table>
-    </div>
-
-    <!-- Paginación -->
-    @if (totalPages() > 0) {
-    <div class="pagination-container">
-        <div class="pagination-info">
-        Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
-        {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
-        de {{ totalItems() }} proveedores
-        </div>
-        
-        <div class="pagination-controls">
-        <div class="page-size-selector">
-            <span>Mostrar:</span>
-            <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
-            @for (size of pageSizeOptions; track size) {
-                <option [value]="size">{{ size }}</option>
+                <th>Nombre</th>
+                <th>Contacto</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Registrado</th>
+                <th></th></tr>
+            </thead>
+            <tbody>
+            @for (s of suppliers(); track s.id) {
+                <tr>
+                <td class="name-cell">{{ s.name }}</td>
+                <td>{{ s.contactPerson || '—' }}</td>
+                <td>{{ s.phone || '—' }}</td>
+                <td>{{ s.email || '—' }}</td>
+                <td>{{ parseDate(s.createdAt) | date:'d MMM yyyy' }}</td>
+                <td>
+                    <button class="action-btn" (click)="openModal(s)">
+                    <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px; height: 18px;">
+                    </button>
+                    <button class="action-btn delete" (click)="toDelete.set(s.id)">
+                    <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px; height: 18px;">
+                    </button>
+                </td>
+                </tr>
             }
-            </select>
+            @if (suppliers().length === 0) {
+                <tr><td colspan="6" class="empty-row">No hay proveedores registrados</td></tr>
+            }
+            </tbody>
+        </table>
         </div>
 
-        <div class="pagination-buttons">
-            <button class="page-btn" 
-                    [disabled]="currentPage() === 1" 
-                    (click)="previousPage()">
-            « Anterior
-            </button>
+        <!-- Paginación -->
+        @if (totalPages() > 0) {
+        <div class="pagination-container">
+            <div class="pagination-info">
+            Mostrando {{ (currentPage() - 1) * itemsPerPage() + 1 }} - 
+            {{ currentPage() * itemsPerPage() > totalItems() ? totalItems() : currentPage() * itemsPerPage() }} 
+            de {{ totalItems() }} proveedores
+            </div>
             
-            @for (page of getPageNumbers(); track page) {
-            @if (page === -1) {
-                <span class="page-ellipsis">...</span>
-            } @else {
+            <div class="pagination-controls">
+            <div class="page-size-selector">
+                <span>Mostrar:</span>
+                <select [ngModel]="itemsPerPage()" (ngModelChange)="changePageSize($event)">
+                @for (size of pageSizeOptions; track size) {
+                    <option [value]="size">{{ size }}</option>
+                }
+                </select>
+            </div>
+
+            <div class="pagination-buttons">
                 <button class="page-btn" 
-                        [class.active]="currentPage() === page"
-                        (click)="goToPage(page)">
-                {{ page }}
+                        [disabled]="currentPage() === 1" 
+                        (click)="previousPage()">
+                « Anterior
                 </button>
-            }
-            }
-            
-            <button class="page-btn" 
-                    [disabled]="currentPage() === totalPages()" 
-                    (click)="nextPage()">
-            Siguiente »
-            </button>
+                
+                @for (page of getPageNumbers(); track page) {
+                @if (page === -1) {
+                    <span class="page-ellipsis">...</span>
+                } @else {
+                    <button class="page-btn" 
+                            [class.active]="currentPage() === page"
+                            (click)="goToPage(page)">
+                    {{ page }}
+                    </button>
+                }
+                }
+                
+                <button class="page-btn" 
+                        [disabled]="currentPage() === totalPages()" 
+                        (click)="nextPage()">
+                Siguiente »
+                </button>
+            </div>
+            </div>
         </div>
+        }
+    }
+    
+    <!-- CONTENIDO RECEPCIONES -->
+    @if (activeTab() === 'receipts') {
+        <div class="filters">
+            <input 
+                type="search" 
+                [value]="receiptsSearch"
+                (input)="onReceiptsSearchInput($event)"
+                placeholder="Buscar por proveedor, factura o producto..." 
+                class="search-input">
         </div>
-    </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Proveedor</th>
+                        <!-- <th>Factura/Remisión</th> -->
+                        <th>Items recibidos</th>
+                        <th>Cant. Total</th>
+                        <th>Valor Total</th>
+                        <th>Estado</th>
+                        <th>Recibió</th>
+                        <th>Fecha</th>
+                        <!-- <th>Notas</th> -->
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (r of receipts(); track r.id) {
+                    <tr>
+                        <!-- Nombre del proveedor -->
+                        <td class="name-cell">{{ r.supplier?.name || 'Sin proveedor' }}</td>
+
+                        <!-- Factura/Remision -->
+                        <!-- <td>{{ r.invoiceNumber || '—' }}</td> -->
+
+                        <!-- Items -->
+                        <td>
+                            @for (item of r.items.slice(0, 2); track item.id) {
+                                <div class="item-line">
+                                    <span class="item-qty">x{{ item.quantity }}</span>
+                                    <span class="item-name">{{ item.productName }}</span>
+                                    <span class="item-cost">(${{ formatUnitCost(item.unitCost) }})</span>
+                                </div>
+                            }
+                            @if (r.items.length > 2) {
+                                <div class="item-more">+{{ r.items.length - 2 }} más</div>
+                            }
+                        </td>
+
+                        <!-- Total de Items -->
+                        <td class="text-center">{{ getTotalQuantity(r.items) }}</td>
+
+                        <!-- Valor Total -->
+                        <td class="text-right">$ {{ getTotalValue(r.items) }}</td>
+
+                        <!-- Estado -->
+                        <td><span class="status-badge" [class]="r.status">{{ getStatusLabel(r.status) }}</span></td>
+
+                        <!-- Recibidor por -->
+                        <td>{{ r.receivedBy?.name || '—' }}</td>
+
+                        <!-- Fecha -->
+                        <td>{{ parseDate(r.createdAt) | date:'d MMM yyyy' }}</td>
+
+                        <!-- Notas -->
+                        <!-- <td class="notes-cell">{{ r.notes || '—' }}</td> -->
+                        <td>
+                            <button class="action-btn" (click)="openReceiptModal(r)">
+                                <img src="assets/icons/edit.svg" alt="Editar" style="width: 18px;">
+                            </button>
+                            <button class="action-btn delete" (click)="toDeleteReceipt.set(r.id)">
+                                <img src="assets/icons/delete.svg" alt="Eliminar" style="width: 18px;">
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                    @if (receipts().length === 0) {
+        <tr>
+            <td colspan="9" class="empty-row">No hay recepciones registradas</td>
+        </tr>
+    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CONTENIDO RECEPCIONES -->
+        @if (activeTab() === 'receipts') {
+            <div class="table-wrap">
+                <!-- tabla de recepciones -->
+            </div>
+
+            <!-- Paginación para recepciones -->
+            @if (receiptsTotalPages() > 0) {
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando {{ (receiptsCurrentPage() - 1) * receiptsItemsPerPage() + 1 }} - 
+                    {{ receiptsCurrentPage() * receiptsItemsPerPage() > receiptsTotalItems() ? receiptsTotalItems() : receiptsCurrentPage() * receiptsItemsPerPage() }} 
+                    de {{ receiptsTotalItems() }} recepciones
+                </div>
+                
+                <div class="pagination-controls">
+                    <div class="page-size-selector">
+                        <span>Mostrar:</span>
+                        <select [ngModel]="receiptsItemsPerPage()" (ngModelChange)="receiptsChangePageSize($event)">
+                            @for (size of pageSizeOptions; track size) {
+                                <option [value]="size">{{ size }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="pagination-buttons">
+                        <button class="page-btn" 
+                                [disabled]="receiptsCurrentPage() === 1" 
+                                (click)="receiptsPreviousPage()">
+                            « Anterior
+                        </button>
+                        
+                        @for (page of receiptsGetPageNumbers(); track page) {
+                            @if (page === -1) {
+                                <span class="page-ellipsis">...</span>
+                            } @else {
+                                <button class="page-btn" 
+                                        [class.active]="receiptsCurrentPage() === page"
+                                        (click)="receiptsGoToPage(page)">
+                                    {{ page }}
+                                </button>
+                            }
+                        }
+                        
+                        <button class="page-btn" 
+                                [disabled]="receiptsCurrentPage() === receiptsTotalPages()" 
+                                (click)="receiptsNextPage()">
+                            Siguiente »
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        }
     }
 </div>
 
@@ -183,6 +344,151 @@
     </div>
     </div>
 }
+
+<!-- Modal nueva/editar recepción -->
+@if (showReceiptModal()) {
+  <div class="modal-overlay" (click)="closeReceiptModal()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingReceipt() ? 'Editar recepción' : 'Nueva recepción de mercancía' }}</h3>
+        <button (click)="closeReceiptModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Proveedor</label>
+            <select [(ngModel)]="receiptForm.supplierId">
+              <option value="">Sin proveedor</option>
+              @for (s of suppliers(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>N° Factura / Remisión</label>
+            <input type="text" [(ngModel)]="receiptForm.invoiceNumber" placeholder="Opcional">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Estado</label>
+            <select [(ngModel)]="receiptForm.status">
+              <option value="complete">✅ Completo</option>
+              <option value="partial">⚠️ Parcial</option>
+              <option value="damaged">❌ Con daños</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Notas generales</label>
+            <input type="text" [(ngModel)]="receiptForm.notes" placeholder="Opcional">
+          </div>
+        </div>
+
+        <div class="receipt-items-header">
+          <label>Productos recibidos *</label>
+          <button type="button" class="btn-add-item" (click)="addReceiptItem()">+ Agregar item</button>
+        </div>
+
+        <!-- Ciclo de cada producto -->
+        @for (item of receiptForm.items; track i; let i = $index)  {
+            <div class="receipt-item-card">
+                <div class="receipt-item-header">
+                    <span class="item-number">Item {{ i + 1 }}</span>
+                    <button type="button" class="btn-remove-item" (click)="removeReceiptItem(i)">
+                        ✕ Eliminar
+                    </button>
+                </div>
+                
+                <div class="receipt-item-body">
+                    <!-- Nombre del producto -->
+                    <div class="field-group field-group-full">
+                        <label class="field-label">Nombre del producto *</label>
+                        <input 
+                            type="text" 
+                            [(ngModel)]="item.productName" 
+                            placeholder="Ej: Arroz, Aceite, Harina..."
+                            class="field-input">
+                    </div>
+                    
+                    <div class="field-row-3">
+                        <!-- Cantidad -->
+                        <div class="field-group">
+                            <label class="field-label">Cantidad</label>
+                            <input 
+                                type="text" 
+                                [value]="formatQuantity(item.quantity)"
+                                (input)="onQuantityInput($event, i)" 
+                                placeholder="0"
+                                class="field-input">
+                        </div>
+                        
+                        <!-- Unidad de Medida -->
+                        <div class="field-group">
+                            <label class="field-label">Unidad</label>
+                            <select [(ngModel)]="item.unit" class="field-select">
+                                <option value="unit">📦 Unidad</option>
+                                <option value="kg">⚖️ kg</option>
+                                <option value="liter">💧 Litro</option>
+                                <option value="gram">⚖️ Gramo</option>
+                                <option value="meter">📏 Metro</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Costo Unitario -->
+                        <div class="field-group">
+                            <label class="field-label">Costo unitario</label>
+                            <input 
+                                type="text" 
+                                [value]="formatUnitCost(item.unitCost)"
+                                (input)="onUnitCostInput($event, i)" 
+                                placeholder="$ 0"
+                                class="field-input">
+                        </div>
+                    </div>
+                    
+                    <!-- Condicion del producto -->
+                    <div class="field-group">
+                        <label class="field-label">Condición</label>
+                        <select [(ngModel)]="item.condition" class="field-select">
+                            <option value="bueno">✅ Bueno</option>
+                            <option value="dañado">❌ Dañado</option>
+                            <option value="incompleto">⚠️ Incompleto</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (receiptForm.items.length === 0) {
+          <div class="receipt-empty">Agrega al menos un producto recibido</div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeReceiptModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="savingReceipt()" (click)="saveReceipt()">
+          {{ savingReceipt() ? 'Guardando...' : (editingReceipt() ? 'Actualizar recepción' : 'Registrar recepción') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Confirmar eliminar recepción -->
+@if (toDeleteReceipt()) {
+  <div class="modal-overlay" (click)="toDeleteReceipt.set(null)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">📦</div>
+      <h3>¿Eliminar recepción?</h3>
+      <p>El stock actualizado no se revertirá automáticamente.</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="toDeleteReceipt.set(null)">Cancelar</button>
+        <button class="btn-delete" (click)="confirmDeleteReceipt()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- <app-toast /> -->
 
 @if (toast()) {
     <div class="toast">{{ toast() }}</div>

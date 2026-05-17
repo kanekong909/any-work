@@ -154,7 +154,7 @@ export class ApiService {
     return this.http.post<any>(`${this.api}/receipts`, data);
   }
   updateReceipt(id: string, data: any): Observable<any> {
-    return this.http.put(`${this.api}/receipts/${id}`, data);
+    return this.http.put<any>(`${this.api}/receipts/${id}`, data);
   }
   deleteReceipt(id: string): Observable<any> {
     return this.http.delete(`${this.api}/receipts/${id}`);

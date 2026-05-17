@@ -4,7 +4,6 @@ import { DatePipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '@core/services/toast.service';
 import { ToastComponent } from '@shared/components/toast/toast.component';
-import { Toast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-suppliers',
@@ -27,12 +26,18 @@ export class SuppliersComponent implements OnInit {
   form: any = {};
   private searchTimer: any;
 
-  // Paginación
+  // Paginación Proveedores
   currentPage = signal(1);
   itemsPerPage = signal(10);
   totalItems = signal(0);
   totalPages = () => Math.ceil(this.totalItems() / this.itemsPerPage());
   pageSizeOptions = [10, 25, 50, 100];
+
+  // Paginación para Recepciones
+  receiptsCurrentPage = signal(1);
+  receiptsItemsPerPage = signal(10);
+  receiptsTotalItems = signal(0);
+  receiptsTotalPages = () => Math.ceil(this.receiptsTotalItems() / this.receiptsItemsPerPage());
 
   // Tab Suppliers | Receipts
   activeTab = signal<'suppliers' | 'receipts'>('suppliers');
@@ -42,8 +47,23 @@ export class SuppliersComponent implements OnInit {
   toDeleteReceipt = signal<string | null>(null);
   receiptForm: any = { supplierId: '', invoiceNumber: '', status: 'complete', notes: '', items: [] };
 
+  // Edicion
+  editingReceipt = signal<any>(null);
+
+  // Buscador recepciones
+  receiptsSearch = '';
+  private receiptsSearchTimer: any;
+
   constructor(private api: ApiService) {}
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void { 
+    this.load();
+  }
+  switchTab(tab: 'suppliers' | 'receipts') {
+    this.activeTab.set(tab);
+    if (tab === 'receipts' && this.receipts().length === 0) {
+      this.loadReceipts();
+    }
+  }
 
   load(): void {
     const params: any = { 
@@ -65,7 +85,7 @@ export class SuppliersComponent implements OnInit {
     this.searchTimer = setTimeout(() => this.load(), 300); 
   }
 
-  // Métodos de paginación
+  // PAGINACION PROVEEDORES
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
@@ -133,6 +153,55 @@ export class SuppliersComponent implements OnInit {
     this.showModal.set(true);
   }
 
+  // PAGINACION RECEPCIONES
+  receiptsGoToPage(page: number): void {
+      if (page < 1 || page > this.receiptsTotalPages()) return;
+      this.receiptsCurrentPage.set(page);
+      this.loadReceipts();
+  }
+  receiptsPreviousPage(): void {
+      if (this.receiptsCurrentPage() > 1) {
+          this.receiptsCurrentPage.update(page => page - 1);
+          this.loadReceipts();
+      }
+  }
+  receiptsNextPage(): void {
+      if (this.receiptsCurrentPage() < this.receiptsTotalPages()) {
+          this.receiptsCurrentPage.update(page => page + 1);
+          this.loadReceipts();
+      }
+  }
+  receiptsChangePageSize(size: number): void {
+      this.receiptsItemsPerPage.set(size);
+      this.receiptsCurrentPage.set(1);
+      this.loadReceipts();
+  }
+  receiptsGetPageNumbers(): number[] {
+      const total = this.receiptsTotalPages();
+      const current = this.receiptsCurrentPage();
+      const pages: number[] = [];
+      
+      if (total <= 7) {
+          for (let i = 1; i <= total; i++) pages.push(i);
+      } else {
+          if (current <= 3) {
+              for (let i = 1; i <= 5; i++) pages.push(i);
+              pages.push(-1);
+              pages.push(total);
+          } else if (current >= total - 2) {
+              pages.push(1);
+              pages.push(-1);
+              for (let i = total - 4; i <= total; i++) pages.push(i);
+          } else {
+              pages.push(1);
+              pages.push(-1);
+              for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+              pages.push(-1);
+              pages.push(total);
+          }
+      }
+      return pages;
+  }
   
   closeModal(): void { this.showModal.set(false); }
 
@@ -247,17 +316,53 @@ export class SuppliersComponent implements OnInit {
   }
 
   loadReceipts(): void {
-    this.api.getReceipts({ limit: 50 }).subscribe(r => this.receipts.set(r.items));
-  }
+     console.log('Cargando con search:', this.receiptsSearch); // ← Para depurar
+      const params: any = {
+          limit: this.receiptsItemsPerPage(),
+          page: this.receiptsCurrentPage()
+      };
+      
+      // Agregar búsqueda si tiene valor
+      if (this.receiptsSearch) {
+          params.search = this.receiptsSearch;
+      }
 
-  openReceiptModal(): void {
-    this.receiptForm = { 
-      supplierId: '', 
-      invoiceNumber: '', 
-      status: 'complete', 
-      notes: '', 
-      items: [{ productName: '', quantity: 1, unit: 'kg', unitCost: 0, condition: 'bueno', notes: '' }] // Item inicial por defecto
-    };
+      console.log('Parámetros enviados a la API:', params); // ← Ver qué se envía
+      
+      this.api.getReceipts(params).subscribe(r => {
+          console.log('RESPUESTA COMPLETA:', r); // ← Ver toda la respuesta
+        console.log('Items recibidos:', r.items);
+        console.log('Total:', r.total);
+        console.log('Cantidad de items:', r.items?.length);
+          // Limpiar cantidades de items existentes
+          const cleanedReceipts = r.items.map((receipt: any) => ({
+              ...receipt,
+              items: receipt.items.map((item: any) => ({
+                  ...item,
+                  quantity: Math.floor(Number(item.quantity)), // Convierte 2.000 a 2
+                  unitCost: Math.floor(Number(item.unitCost)) // Convierte 80000.00 a 80000
+              }))
+          }));
+          
+          this.receipts.set(cleanedReceipts);
+          this.receiptsTotalItems.set(r.total || r.items?.length || 0);
+      });
+  }
+  // Edicion recepcion
+  openReceiptModal(r?: any): void {
+    if (r) {
+      this.editingReceipt.set(r);
+      this.receiptForm = {
+        supplierId: r.supplierId || '',
+        invoiceNumber: r.invoiceNumber || '',
+        status: r.status || 'complete',
+        notes: r.notes || '',
+        items: r.items.map((i: any) => ({ ...i })),
+      };
+    } else {
+      this.editingReceipt.set(null);
+      this.receiptForm = { supplierId: '', invoiceNumber: '', status: 'complete', notes: '', items: [] };
+    }
     this.showReceiptModal.set(true);
   }
 
@@ -265,7 +370,12 @@ export class SuppliersComponent implements OnInit {
 
   addReceiptItem(): void {
     this.receiptForm.items = [...this.receiptForm.items, {
-      productName: '', quantity: 1, unit: 'unit', unitCost: 0, condition: 'bueno', notes: ''
+        productName: '', 
+        quantity: 0, 
+        unit: 'unit', 
+        unitCost: 0, 
+        condition: 'bueno', 
+        notes: ''
     }];
   }
 
@@ -275,45 +385,35 @@ export class SuppliersComponent implements OnInit {
 
   saveReceipt(): void {
     if (!this.receiptForm.items.length) {
-      this.toastService.error('Error', 'Agrega al menos un producto');
+      this.toastService.error('Error', 'Agrega al menos un producto.');
       return;
     }
-    
     const invalidItem = this.receiptForm.items.find((i: any) => !i.productName.trim());
     if (invalidItem) {
-      this.toastService.error('Error', 'Todos los productos deben tener nombre');
+      this.toastService.error('Error', 'Todos los productos deben tener nombre.');
       return;
     }
-    
     this.savingReceipt.set(true);
-    
-    const obs = this.receiptForm.id
-      ? this.api.updateReceipt(this.receiptForm.id, this.receiptForm)
+
+    const obs = this.editingReceipt()
+      ? this.api.updateReceipt(this.editingReceipt().id, this.receiptForm)
       : this.api.createReceipt(this.receiptForm);
-      
+
     obs.subscribe({
       next: () => {
         this.loadReceipts();
         this.closeReceiptModal();
         this.savingReceipt.set(false);
-        this.toastService.success('Éxito', this.receiptForm.id ? 'Recepción actualizada' : 'Recepción registrada');
+        this.toastService.success(
+          this.editingReceipt() ? 'Recepción actualizada' : 'Recepción registrada',
+          'Operación completada correctamente.'
+        );
       },
       error: (err) => {
         this.savingReceipt.set(false);
-        this.toastService.error('Error', err.error?.message || 'Error al guardar');
+        this.toastService.error('Error', err.error?.message || 'Error al guardar.');
       }
     });
-  }
-  editReceipt(receipt: any): void {
-    this.receiptForm = {
-      id: receipt.id,
-      supplierId: receipt.supplierId || '',
-      invoiceNumber: receipt.invoiceNumber || '',
-      status: receipt.status || 'complete',
-      notes: receipt.notes || '',
-      items: receipt.items.map((item: any) => ({ ...item }))
-    };
-    this.showReceiptModal.set(true);
   }
   confirmDeleteReceipt(): void {
     this.api.deleteReceipt(this.toDeleteReceipt()!).subscribe(() => {
@@ -328,18 +428,26 @@ export class SuppliersComponent implements OnInit {
     };
     return labels[status] || status;
   }
-
   onQuantityInput(event: any, index: number): void {
-    const value = event.target.value;
-    // Elimina cualquier cosa que no sea un número entero
-    const cleanValue = value.toString().replace(/[^0-9]/g, '');
-    // Convierte a número entero base 10
-    const finalValue = cleanValue ? parseInt(cleanValue, 10) : 0;
-    
-    // Sincroniza el estado interno del formulario
-    this.receiptForm.items[index].quantity = finalValue;
-    // Fuerza al input de la pantalla a mostrar el número entero limpio de inmediato
-    event.target.value = finalValue;
+      let value = event.target.value;
+      
+      // Elimina cualquier cosa que no sea número (incluyendo puntos y comas)
+      let cleanValue = value.toString().replace(/[^0-9]/g, '');
+      
+      // Convierte a número entero
+      let finalValue = cleanValue ? parseInt(cleanValue, 10) : 0;
+      
+      // Si el valor tiene punto decimal (ej: "2.000"), tomar solo la parte entera
+      if (value.toString().includes('.')) {
+          const parts = value.toString().split('.');
+          finalValue = parseInt(parts[0], 10) || 0;
+      }
+      
+      // Sincroniza el estado interno del formulario
+      this.receiptForm.items[index].quantity = finalValue;
+      
+      // Actualiza el input mostrando solo el número entero
+      event.target.value = finalValue;
   }
   formatQuantity(quantity: number): string {
     return Math.floor(quantity).toString();
@@ -347,22 +455,69 @@ export class SuppliersComponent implements OnInit {
   parseToInt(value: any): number {
     return parseInt(value, 10) || 0;
   }
+
+  // COSTO 80000.00 A 80.000
+  formatUnitCost(value: number | string): string {
+      if (!value) return '0';
+      // Convertir a número y redondear a entero
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(numValue)) return '0';
+      // Formatear con separadores de miles (formato colombiano: punto como separador de miles)
+      return Math.floor(numValue).toLocaleString('es-CO');
+  }
+  cleanUnitCost(value: string): number {
+      if (!value) return 0;
+      // Eliminar puntos y comas, solo números
+      const cleanValue = value.replace(/[^0-9]/g, '');
+      // Convertir a número entero
+      const numValue = parseInt(cleanValue, 10);
+      return isNaN(numValue) ? 0 : numValue;
+  }
   onUnitCostInput(event: any, index: number): void {
-    let value = event.target.value;
-    
-    // Permite solo números y un único punto decimal para los centavos
-    let cleanValue = value.toString().replace(/[^0-9.]/g, '');
-    
-    // Si hay más de un punto decimal, dejamos solo el primero
-    const parts = cleanValue.split('.');
-    if (parts.length > 2) {
-      cleanValue = parts[0] + '.' + parts.slice(1).join('');
-    }
-    
-    // Guardamos el valor numérico en el objeto del formulario
-    this.receiptForm.items[index].unitCost = cleanValue ? parseFloat(cleanValue) : 0;
-    // Actualizamos la vista en tiempo real sin formatear todavía para que deje escribir decimales
-    event.target.value = cleanValue;
+      let rawValue = event.target.value;
+      
+      // Limpiar el valor a número entero
+      const cleanNumber = this.cleanUnitCost(rawValue);
+      
+      // Guardar el número limpio en el formulario
+      this.receiptForm.items[index].unitCost = cleanNumber;
+      
+      // Actualizar el input con el valor formateado
+      event.target.value = this.formatUnitCost(cleanNumber);
   }
 
+  // Calcular cantidad total de items en una recepción
+  getTotalQuantity(items: any[]): number {
+      if (!items || items.length === 0) return 0;
+      return items.reduce((total, item) => total + (item.quantity || 0), 0);
+  }
+  // Calcular valor total de una recepción
+  getTotalValue(items: any[]): string {
+      if (!items || items.length === 0) return '0';
+      const total = items.reduce((sum, item) => {
+          const quantity = item.quantity || 0;
+          const unitCost = item.unitCost || 0;
+          return sum + (quantity * unitCost);
+      }, 0);
+      // Formatear con separadores de miles
+      return Math.floor(total).toLocaleString('es-CO');
+  }
+
+  // Buscar recepciones
+  onReceiptsSearch(): void {
+     console.log('Buscando:', this.receiptsSearch); // ← Para depurar
+      this.receiptsCurrentPage.set(1);
+      clearTimeout(this.receiptsSearchTimer);
+      this.receiptsSearchTimer = setTimeout(() => this.loadReceipts(), 300);
+  }
+  onReceiptsSearchInput(event: any): void {
+      this.receiptsSearch = event.target.value;
+      this.receiptsCurrentPage.set(1);
+      clearTimeout(this.receiptsSearchTimer);
+      this.receiptsSearchTimer = setTimeout(() => this.loadReceipts(), 300);
+  }
+  clearReceiptsSearch(): void {
+      this.receiptsSearch = '';
+      this.onReceiptsSearch();
+  }
 } 

@@ -26,7 +26,7 @@ export class LayoutComponent {
     this.checkNewUserTip();
   }
 
-    navItems = computed<{
+  navItems = computed<{
     path: string;
     icon: string;
     label: string;
@@ -39,9 +39,9 @@ export class LayoutComponent {
     // 1. Menú para Superadmin de la plataforma
     if (this.isSuperAdmin()) {
       return [
-        { path: '/dashboard', icon: 'assets/icons/dashboard.svg', label: 'Dashboard' },
+        // { path: '/dashboard', icon: 'assets/icons/dashboard.svg', label: 'Dashboard' },
         { path: '/admin',     icon: 'assets/icons/admina.svg', label: 'Panel Admin' },
-        { path: '/settings',  icon: 'assets/icons/setting.svg', label: 'Configuración' },
+        // { path: '/settings',  icon: 'assets/icons/setting.svg', label: 'Configuración' },
       ];
     }
 
@@ -83,14 +83,15 @@ export class LayoutComponent {
     return fullMenu;
   });
 
-
   businessTypes: Record<string, string> = {
     bakery: 'Panadería', pastry: 'Repostería', hardware: 'Ferretería',
     restaurant: 'Restaurante', boutique: 'Boutique', grocery: 'Tienda',
     pharmacy: 'Farmacia', services: 'Servicios', other: 'Negocio',
   };
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService
+    
+  ) {}
 
   getBusinessTypeLabel(): string {
     return this.businessTypes[this.tenant()?.businessType || ''] || '';

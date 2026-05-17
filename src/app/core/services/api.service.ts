@@ -153,6 +153,9 @@ export class ApiService {
   createReceipt(data: any): Observable<any> {
     return this.http.post<any>(`${this.api}/receipts`, data);
   }
+  updateReceipt(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.api}/receipts/${id}`, data);
+  }
   deleteReceipt(id: string): Observable<any> {
     return this.http.delete(`${this.api}/receipts/${id}`);
   }
@@ -174,8 +177,12 @@ export class ApiService {
   getAdminStats(): Observable<AdminStats> {
     return this.http.get<AdminStats>(`${this.api}/admin/stats`);
   }
-  getAdminTenants(params?: any): Observable<PagedResponse<Tenant>> {
-    return this.http.get<any>(`${this.api}/admin/tenants`, { params });
+  // api.service.ts
+  getAdminTenants(params?: any): Observable<{ items: Tenant[]; total: number }> {
+    return this.http.get<{ items: Tenant[]; total: number }>(
+      `${this.api}/admin/tenants`, 
+      { params }
+    );
   }
   updateTenantStatus(id: string, status: string): Observable<any> {
     return this.http.patch(`${this.api}/admin/tenants/${id}/status`, { status });

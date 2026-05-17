@@ -1,7 +1,10 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
+import { ToastService } from '@core/services/toast.service';
+import { ToastComponent } from '@shared/components/toast/toast.component';
+import { Toast } from 'ngx-toastr';
 
 @Component({
   selector: 'app-suppliers',
@@ -11,6 +14,8 @@ import { ApiService } from '../../core/services/api.service';
   styleUrl: './suppliers.component.css'
 })
 export class SuppliersComponent implements OnInit {
+  private toastService = inject(ToastService);
+
   suppliers = signal<any[]>([]);
   total = signal(0);
   showModal = signal(false);
@@ -28,6 +33,14 @@ export class SuppliersComponent implements OnInit {
   totalItems = signal(0);
   totalPages = () => Math.ceil(this.totalItems() / this.itemsPerPage());
   pageSizeOptions = [10, 25, 50, 100];
+
+  // Tab Suppliers | Receipts
+  activeTab = signal<'suppliers' | 'receipts'>('suppliers');
+  receipts = signal<any[]>([]);
+  showReceiptModal = signal(false);
+  savingReceipt = signal(false);
+  toDeleteReceipt = signal<string | null>(null);
+  receiptForm: any = { supplierId: '', invoiceNumber: '', status: 'complete', notes: '', items: [] };
 
   constructor(private api: ApiService) {}
   ngOnInit(): void { this.load(); }
@@ -126,15 +139,20 @@ export class SuppliersComponent implements OnInit {
   save(): void {
     if (!this.form.name) return;
     
-    // Asegurar que el telefono sea solo numeros antes de guardar
-    if (this.form.phone) {
-      this.form.phone = this.cleanPhoneNumber(this.form.phone);
-    }
-
     this.saving.set(true);
+    
+    // Creamos un clon del formulario para enviar los datos procesados limpios a la API
+    const payload = { ...this.form };
+    if (payload.phone) {
+      payload.phone = this.cleanPhoneNumber(payload.phone);
+    }
+    // Removemos la propiedad visual para que no ensucie la petición HTTP
+    delete payload.displayPhone;
+
     const obs = this.editing()
-      ? this.api.updateSupplier(this.editing().id, this.form)
-      : this.api.createSupplier(this.form);
+      ? this.api.updateSupplier(this.editing().id, payload)
+      : this.api.createSupplier(payload);
+      
     obs.subscribe({ 
       next: () => { 
         this.load(); 
@@ -227,4 +245,124 @@ export class SuppliersComponent implements OnInit {
       const cleanNumbers = this.cleanPhoneNumber(phone);
       return this.formatPhoneForDisplay(cleanNumbers);
   }
-}
+
+  loadReceipts(): void {
+    this.api.getReceipts({ limit: 50 }).subscribe(r => this.receipts.set(r.items));
+  }
+
+  openReceiptModal(): void {
+    this.receiptForm = { 
+      supplierId: '', 
+      invoiceNumber: '', 
+      status: 'complete', 
+      notes: '', 
+      items: [{ productName: '', quantity: 1, unit: 'kg', unitCost: 0, condition: 'bueno', notes: '' }] // Item inicial por defecto
+    };
+    this.showReceiptModal.set(true);
+  }
+
+  closeReceiptModal(): void { this.showReceiptModal.set(false); }
+
+  addReceiptItem(): void {
+    this.receiptForm.items = [...this.receiptForm.items, {
+      productName: '', quantity: 1, unit: 'unit', unitCost: 0, condition: 'bueno', notes: ''
+    }];
+  }
+
+  removeReceiptItem(index: number): void {
+    this.receiptForm.items = this.receiptForm.items.filter((_: any, i: number) => i !== index);
+  }
+
+  saveReceipt(): void {
+    if (!this.receiptForm.items.length) {
+      this.toastService.error('Error', 'Agrega al menos un producto');
+      return;
+    }
+    
+    const invalidItem = this.receiptForm.items.find((i: any) => !i.productName.trim());
+    if (invalidItem) {
+      this.toastService.error('Error', 'Todos los productos deben tener nombre');
+      return;
+    }
+    
+    this.savingReceipt.set(true);
+    
+    const obs = this.receiptForm.id
+      ? this.api.updateReceipt(this.receiptForm.id, this.receiptForm)
+      : this.api.createReceipt(this.receiptForm);
+      
+    obs.subscribe({
+      next: () => {
+        this.loadReceipts();
+        this.closeReceiptModal();
+        this.savingReceipt.set(false);
+        this.toastService.success('Éxito', this.receiptForm.id ? 'Recepción actualizada' : 'Recepción registrada');
+      },
+      error: (err) => {
+        this.savingReceipt.set(false);
+        this.toastService.error('Error', err.error?.message || 'Error al guardar');
+      }
+    });
+  }
+  editReceipt(receipt: any): void {
+    this.receiptForm = {
+      id: receipt.id,
+      supplierId: receipt.supplierId || '',
+      invoiceNumber: receipt.invoiceNumber || '',
+      status: receipt.status || 'complete',
+      notes: receipt.notes || '',
+      items: receipt.items.map((item: any) => ({ ...item }))
+    };
+    this.showReceiptModal.set(true);
+  }
+  confirmDeleteReceipt(): void {
+    this.api.deleteReceipt(this.toDeleteReceipt()!).subscribe(() => {
+      this.loadReceipts();
+      this.toDeleteReceipt.set(null);
+      this.toastService.success('Eliminada', 'Recepción eliminada.');
+    });
+  }
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      complete: 'Completo', partial: 'Parcial', damaged: 'Con daños'
+    };
+    return labels[status] || status;
+  }
+
+  onQuantityInput(event: any, index: number): void {
+    const value = event.target.value;
+    // Elimina cualquier cosa que no sea un número entero
+    const cleanValue = value.toString().replace(/[^0-9]/g, '');
+    // Convierte a número entero base 10
+    const finalValue = cleanValue ? parseInt(cleanValue, 10) : 0;
+    
+    // Sincroniza el estado interno del formulario
+    this.receiptForm.items[index].quantity = finalValue;
+    // Fuerza al input de la pantalla a mostrar el número entero limpio de inmediato
+    event.target.value = finalValue;
+  }
+  formatQuantity(quantity: number): string {
+    return Math.floor(quantity).toString();
+  }
+  parseToInt(value: any): number {
+    return parseInt(value, 10) || 0;
+  }
+  onUnitCostInput(event: any, index: number): void {
+    let value = event.target.value;
+    
+    // Permite solo números y un único punto decimal para los centavos
+    let cleanValue = value.toString().replace(/[^0-9.]/g, '');
+    
+    // Si hay más de un punto decimal, dejamos solo el primero
+    const parts = cleanValue.split('.');
+    if (parts.length > 2) {
+      cleanValue = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Guardamos el valor numérico en el objeto del formulario
+    this.receiptForm.items[index].unitCost = cleanValue ? parseFloat(cleanValue) : 0;
+    // Actualizamos la vista en tiempo real sin formatear todavía para que deje escribir decimales
+    event.target.value = cleanValue;
+  }
+
+} 

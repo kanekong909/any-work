@@ -47,6 +47,10 @@ export class InventoryComponent implements OnInit {
   pendingImageFile: File | null = null;
   viewingImage = signal<string | null>(null);
 
+  // Eliminaciones masivas
+  selectedIds = signal<Set<string>>(new Set());
+  showBulkDelete = signal(false);
+
   form: any = this.emptyForm();
 
   private toastService = inject(ToastService);
@@ -300,5 +304,37 @@ export class InventoryComponent implements OnInit {
         }
       });
     });
+  }
+
+  // Eliminaciones masivas
+  toggleSelect(id: string): void {
+    const set = new Set(this.selectedIds());
+    set.has(id) ? set.delete(id) : set.add(id);
+    this.selectedIds.set(set);
+  }
+  toggleSelectAll(): void {
+    if (this.selectedIds().size === this.products().length) {
+      this.selectedIds.set(new Set());
+    } else {
+      this.selectedIds.set(new Set(this.products().map(p => p.id)));
+    }
+  }
+  isAllSelected(): boolean {
+    return this.products().length > 0 && this.selectedIds().size === this.products().length;
+  }
+  bulkDelete(): void {
+    const ids = Array.from(this.selectedIds());
+    if (!ids.length) return;
+    this.showBulkDelete.set(false);
+    
+    Promise.all(ids.map(id => this.api.deleteProduct(id).toPromise()))
+      .then(() => {
+        this.selectedIds.set(new Set());
+        this.loadProducts();
+        this.toastService.success('Eliminados', `${ids.length} productos eliminados correctamente.`);
+      })
+      .catch(() => {
+        this.toastService.error('Error', 'Ocurrió un error al eliminar algunos productos.');
+      });
   }
 }

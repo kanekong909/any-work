@@ -1,10 +1,18 @@
 <div class="page">  
     <div class="page-header">
-    <div>
-        <h1 class="page-title">Inventario</h1>
-        <p class="page-sub">{{ total() }} productos registrados</p>
-    </div>
-    <button class="btn-primary" (click)="openModal()">+ Nuevo producto</button>
+        <div>
+            <h1 class="page-title">Inventario</h1>
+            <p class="page-sub">{{ total() }} productos registrados</p>
+        </div>
+        <div class="header-actions">
+            @if (selectedIds().size > 0) {
+            <button class="btn-bulk-delete" (click)="showBulkDelete.set(true)">
+                 <img src="assets/icons/deletev2.svg" alt="Eliminar">
+                 Eliminar seleccionados ({{ selectedIds().size }})
+            </button>
+            }
+            <button class="btn-primary" (click)="openModal()">+ Nuevo producto</button>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -25,65 +33,88 @@
 
     <!-- Tabla -->
     <div class="table-wrap">
-    <table>
-        <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Precio costo</th>
-            <th>Precio venta</th>
-            <th>Stock</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        @for (p of products(); track p.id) {
-            <tr>
-            <td>
-                <div class="product-cell">
-                    @if (p.imageUrl) {
-                        <img [src]="p.imageUrl" class="product-thumb" alt="{{ p.name }}"
-                        (click)="viewingImage.set(p.imageUrl); $event.stopPropagation()"
-                        style="cursor: zoom-in;">
-                    } @else {
-                        <div class="product-thumb-placeholder">📦</div>
-                    }
-                    <div>
-                    <div class="product-name">{{ p.name }}</div>
-                    @if (p.sku) { <div class="product-sku">{{ p.sku }}</div> }
-                    </div>
-                </div>
-            </td>
-            <td><span class="badge">{{ p.category?.name || '—' }}</span></td>
-            <td>{{ p.costPrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-            <td class="price-sale">{{ p.salePrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-            <td>
-                <span class="stock-badge" [class.low]="p.stock <= p.minStock && p.stock > 0"
-                    [class.empty]="p.stock === 0">
-                    {{ p.stock | number:'1.0-0' }} {{ p.unit }}
-                </span>
-            </td>
-            <td>
-                <span class="status" [class.active]="p.isActive" [class.inactive]="!p.isActive">
-                {{ p.isActive ? 'Activo' : 'Inactivo' }}
-                </span>
-            </td>
-            <td>
-                <button class="action-btn" (click)="openModal(p)">
-                <img src="./../../../assets/icons/edit.svg" alt="Editar" width="16" height="16">
-                </button>
-                <button class="action-btn del" (click)="deleteProduct(p.id)">
-                <img src="./../../../assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
-                </button>
-            </td>
-            </tr>
-        }
-        @if (products().length === 0 && !loading()) {
-            <tr><td colspan="7" class="empty-row">No hay productos. ¡Agrega el primero!</td></tr>
-        }
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th class="th-check">
+                        <input type="checkbox" [checked]="isAllSelected()"
+                            (change)="toggleSelectAll()" class="check-input">
+                    </th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio costo</th>
+                    <th>Precio venta</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @for (p of products(); track p.id) {
+                <tr>
+                    <!-- Checkbox -->
+                     <td class="td-check">
+                        <input type="checkbox" [checked]="selectedIds().has(p.id)"
+                        (change)="toggleSelect(p.id)" class="check-input">
+                    </td>
+
+                    <!-- Imagen producto -->
+                    <td>
+                        <div class="product-cell">
+                            @if (p.imageUrl) {
+                                <img [src]="p.imageUrl" class="product-thumb" alt="{{ p.name }}"
+                                (click)="viewingImage.set(p.imageUrl); $event.stopPropagation()"
+                                style="cursor: zoom-in;">
+                            } @else {
+                                <div class="product-thumb-placeholder">📦</div>
+                            }
+                            <div>
+                            <div class="product-name">{{ p.name }}</div>
+                            @if (p.sku) { <div class="product-sku">{{ p.sku }}</div> }
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Categoria  -->
+                    <td><span class="badge">{{ p.category?.name || '—' }}</span></td>
+
+                    <!-- Precio Costo -->
+                    <td>{{ p.costPrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+
+                    <!-- Precio Venta -->
+                    <td class="price-sale">{{ p.salePrice | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+
+                    <!-- Stock -->
+                    <td>
+                        <span class="stock-badge" [class.low]="p.stock <= p.minStock && p.stock > 0"
+                            [class.empty]="p.stock === 0">
+                            {{ p.stock | number:'1.0-0' }} {{ p.unit }}
+                        </span>
+                    </td>
+                    
+                    <!-- Estado -->
+                    <td>
+                        <span class="status" [class.active]="p.isActive" [class.inactive]="!p.isActive">
+                        {{ p.isActive ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td>
+                        <button class="action-btn" (click)="openModal(p)">
+                        <img src="./../../../assets/icons/edit.svg" alt="Editar" width="16" height="16">
+                        </button>
+                        <button class="action-btn del" (click)="deleteProduct(p.id)">
+                        <img src="./../../../assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
+                        </button>
+                    </td>
+                </tr>
+            }
+            @if (products().length === 0 && !loading()) {
+                <tr><td colspan="8" class="empty-row">No hay productos. ¡Agrega el primero!</td></tr>
+            }
+            </tbody>
+        </table>
     </div>
 
     <!-- Paginación -->
@@ -343,6 +374,21 @@
     <div class="image-viewer" (click)="$event.stopPropagation()">
       <button class="viewer-close" (click)="viewingImage.set(null)">✕</button>
       <img [src]="viewingImage()!" alt="Vista completa" class="viewer-img">
+    </div>
+  </div>
+}
+
+<!-- Modal de confirmacion de eliminacion masiva -->
+@if (showBulkDelete()) {
+  <div class="modal-overlay" (click)="showBulkDelete.set(false)">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">🗑️</div>
+      <h3>¿Eliminar {{ selectedIds().size }} productos?</h3>
+      <p>Esta acción no se puede deshacer. Los productos seleccionados serán eliminados permanentemente.</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="showBulkDelete.set(false)">Cancelar</button>
+        <button class="btn-delete" (click)="bulkDelete()">Sí, eliminar todos</button>
+      </div>
     </div>
   </div>
 }

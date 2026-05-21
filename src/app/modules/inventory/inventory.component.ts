@@ -4,11 +4,13 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { ApiService } from '../../core/services/api.service';
 import { Product, Category } from '../../core/models';
 import { ToastService } from '../../core/services/toast.service';
+import { ProductMovementsComponent } from './product-movements/product-movements.component';
+import { StockAdjustModalComponent } from './stock-adjust-modal/stock-adjust-modal.component';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, DecimalPipe],
+  imports: [FormsModule, CurrencyPipe, DecimalPipe, ProductMovementsComponent, StockAdjustModalComponent],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css' 
 })
@@ -50,6 +52,14 @@ export class InventoryComponent implements OnInit {
   // Eliminaciones masivas
   selectedIds = signal<Set<string>>(new Set());
   showBulkDelete = signal(false);
+
+  // Stock
+  showMovementsModal = signal(false);
+  selectedProductForMovements = signal<Product | null>(null);
+  showStockAdjustModal = signal(false);
+  selectedProductForAdjust = signal<Product | null>(null);
+  showLowStockReport = signal(false);
+  lowStockProducts = signal<Product[]>([]);
 
   form: any = this.emptyForm();
 
@@ -154,16 +164,27 @@ export class InventoryComponent implements OnInit {
   saveProduct(): void {
     if (!this.form.name || !this.form.salePrice) return;
     this.saving.set(true);
+    
     const obs = this.editingProduct()
       ? this.api.updateProduct(this.editingProduct()!.id, this.form)
       : this.api.createProduct(this.form);
 
     obs.subscribe({
       next: async (saved) => {
-        // Si hay imagen pendiente, subirla ahora que tenemos el ID
+        // Si hay imagen pendiente, subirla
         if (this.pendingImageFile) {
           await this.uploadPendingImage(saved.id);
         }
+        
+        // Si es un producto NUEVO y tiene stock inicial, registrar movimiento
+        if (!this.editingProduct() && saved.stock > 0) {
+          await this.api.addStock(saved.id, {
+            quantity: saved.stock,
+            unitCost: saved.costPrice,
+            notes: 'Stock inicial al crear producto'
+          }).toPromise();
+        }
+        
         this.loadProducts();
         this.closeModal();
         this.saving.set(false);
@@ -336,5 +357,34 @@ export class InventoryComponent implements OnInit {
       .catch(() => {
         this.toastService.error('Error', 'Ocurrió un error al eliminar algunos productos.');
       });
+  }
+
+  // STOCK MOVEMENTS AND ADJUSTMENTS
+  // Ver historial de movimientos
+  viewMovements(product: Product): void {
+    this.selectedProductForMovements.set(product);
+    this.showMovementsModal.set(true);
+  }
+  // Ajustar stock
+  openStockAdjust(product: Product): void {
+    this.selectedProductForAdjust.set(product);
+    this.showStockAdjustModal.set(true);
+  }
+  // Cargar reporte de bajo stock
+  loadLowStockReport(): void {
+    this.api.getLowStockReport().subscribe({
+      next: (res) => {
+        this.lowStockProducts.set(res.items);
+        this.showLowStockReport.set(true);
+      },
+      error: (err) => {
+        this.toastService.error('Error', 'No se pudo cargar el reporte');
+      }
+    });
+  }
+  // Después de ajustar stock, recargar productos
+  onStockAdjusted(): void {
+    this.loadProducts();
+    this.showStockAdjustModal.set(false);
   }
 }

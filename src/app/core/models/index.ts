@@ -116,6 +116,39 @@ export interface PagedResponse<T> {
   items: T[]; total: number; page: number; limit: number;
 }
 
+export interface StockMovement {
+  id: string;
+  productId: string;
+  product?: Product;
+  movementType: 'IN' | 'OUT' | 'ADJUSTMENT';
+  reason: 'PURCHASE' | 'SALE' | 'INVENTORY_ADJUSTMENT' | 'DAMAGED' | 'EXPIRED' | 'CUSTOMER_RETURN' | 'SUPPLIER_RETURN' | 'INITIAL_STOCK' | 'SUPPLIER_RECEIPT';
+  quantity: number;
+  stockBefore: number;
+  stockAfter: number;
+  unitCost?: number;
+  referenceId?: string;
+  referenceType?: string;
+  notes?: string;
+  userId?: string;
+  user?: User;
+  tenantId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StockMovementSummary {
+  summary: Array<{
+    reason: string;
+    totalQuantity: number;
+    totalMovements: number;
+  }>;
+  totals: {
+    entries: number;
+    exits: number;
+    balance: number;
+  };
+}
+
 // ── Admin ─────────────────────────────────────────────────────
 export interface AdminStats {
   totalTenants: number; activeTenants: number;

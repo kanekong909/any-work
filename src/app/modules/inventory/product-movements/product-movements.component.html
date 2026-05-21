@@ -1,0 +1,131 @@
+<div class="movements-container">
+    <!-- Resumen -->
+    <div class="summary-cards" *ngIf="summary(); else noSummary">
+        <div class="card entries">
+            <div class="card-icon">📥</div>
+            <div class="card-info">
+            <span class="label">Entradas</span>
+            <span class="value">{{ summary()!.totals.entries | number:'1.0-3' }}</span>
+            </div>
+        </div>
+        <div class="card exits">
+            <div class="card-icon">📤</div>
+            <div class="card-info">
+            <span class="label">Salidas</span>
+            <span class="value">{{ summary()!.totals.exits | number:'1.0-3' }}</span>
+            </div>
+        </div>
+        <div class="card balance" [class.negative]="(summary()?.totals?.balance || 0) < 0">
+            <div class="card-icon">⚖️</div>
+            <div class="card-info">
+            <span class="label">Balance</span>
+            <span class="value">{{ summary()!.totals.balance | number:'1.0-3' }}</span>
+            </div>
+        </div>
+    </div>
+    <ng-template #noSummary>
+    <div class="summary-cards-placeholder">
+        <div class="card loading">
+        <div class="card-icon">📊</div>
+        <div class="card-info">
+            <span class="label">Cargando resumen...</span>
+        </div>
+        </div>
+    </div>
+    </ng-template>
+
+    <!-- Filtros -->
+    <div class="filters">
+    <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="onSearchChange()"
+        placeholder="Buscar por referencia o nota..."
+        class="search-input"
+    />
+    <select [(ngModel)]="movementTypeFilter" (change)="loadMovements()" class="type-select">
+        <option value="">Todos los movimientos</option>
+        <option value="IN">Entradas</option>
+        <option value="OUT">Salidas</option>
+        <option value="ADJUSTMENT">Ajustes</option>
+    </select>
+    </div>
+
+    <!-- Tabla de movimientos -->
+    <div class="table-container">
+    <div *ngIf="loading()" class="loading-state">
+        <div class="spinner"></div>
+        <span>Cargando movimientos...</span>
+    </div>
+    
+    <table class="movements-table" *ngIf="!loading()">
+        <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Razón</th>
+            <th>Cantidad</th>
+            <th>Stock Anterior</th>
+            <th>Stock Nuevo</th>
+            <th>Costo Unit.</th>
+            <th>Realizado por</th>
+            <th>Referencia</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let movement of movements()">
+            <td>{{ movement.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+            <span class="badge" [class]="movement.movementType | lowercase">
+                {{ getTypeLabel(movement.movementType) }}
+            </span>
+            </td>
+            <td>{{ getReasonLabel(movement.reason) }}</td>
+            <td [class.positive]="movement.quantity > 0" [class.negative]="movement.quantity < 0">
+            {{ movement.quantity > 0 ? '+' : '' }}{{ movement.quantity | number:'1.0-3' }}
+            </td>
+            <td>{{ movement.stockBefore | number:'1.0-3' }}</td>
+            <td>{{ movement.stockAfter | number:'1.0-3' }}</td>
+            <td>{{ movement.unitCost | currency:'COP':'symbol':'1.0-0' }}</td>
+            <td>{{ movement.user?.name || 'Sistema' }}</td>
+            <td class="reference">
+            <span *ngIf="movement.referenceType === 'supplier_receipt'" class="ref-badge receipt">
+                📄 Recepción
+            </span>
+            <span *ngIf="movement.referenceType === 'sale'" class="ref-badge sale">
+                🛒 Venta
+            </span>
+            <span *ngIf="movement.referenceType === 'purchase_order'" class="ref-badge purchase">
+                📦 Compra
+            </span>
+            <span *ngIf="movement.notes" class="notes" [title]="movement.notes">
+                📝
+            </span>
+            </td>
+        </tr>
+        <tr *ngIf="movements().length === 0">
+            <td colspan="9" class="empty-state">
+            No hay movimientos registrados para este producto
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination" *ngIf="total() > 0">
+    <button (click)="previousPage()" [disabled]="currentPage() === 1">
+        Anterior
+    </button>
+    <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage() === totalPages()">
+        Siguiente
+    </button>
+    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option [value]="10">10</option>
+        <option [value]="25">25</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+    </select>
+    </div>
+</div>

@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Tenant, Product, Category, Expense, Sale, Plan,
-  TenantSubscription, PagedResponse, AdminStats, User
+  TenantSubscription, PagedResponse, AdminStats, User,
+  StockMovement,
+  StockMovementSummary
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -158,6 +160,28 @@ export class ApiService {
   }
   deleteReceipt(id: string): Observable<any> {
     return this.http.delete(`${this.api}/receipts/${id}`);
+  }
+  // Movimientos de stock
+  getProductMovements(productId: string, params?: any): Observable<PagedResponse<StockMovement>> {
+    return this.http.get<PagedResponse<StockMovement>>(`${this.api}/products/${productId}/movements`, { params });
+  }
+  getProductMovementsSummary(productId: string): Observable<StockMovementSummary> {
+    return this.http.get<StockMovementSummary>(`${this.api}/products/${productId}/movements/summary`);
+  }
+  adjustStock(productId: string, data: { quantity: number; reason: string; notes?: string }): Observable<any> {
+    return this.http.post(`${this.api}/products/${productId}/adjust-stock`, data);
+  }
+  addStock(productId: string, data: { quantity: number; unitCost?: number; referenceId?: string; notes?: string }): Observable<any> {
+    return this.http.post(`${this.api}/products/${productId}/add-stock`, data);
+  }
+  removeStock(productId: string, data: { quantity: number; reason: string; referenceId?: string; notes?: string }): Observable<any> {
+    return this.http.post(`${this.api}/products/${productId}/remove-stock`, data);
+  }
+  getLowStockReport(): Observable<{ total: number; items: Product[]; generatedAt: Date }> {
+    return this.http.get<any>(`${this.api}/products/reports/low-stock`);
+  }
+  getReceiptMovements(receiptId: string): Observable<StockMovement[]> {
+    return this.http.get<StockMovement[]>(`${this.api}/receipts/${receiptId}/movements`);
   }
 
   // ── Reports ───────────────────────────────────────────────────

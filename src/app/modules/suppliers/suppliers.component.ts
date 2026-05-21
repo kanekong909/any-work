@@ -316,7 +316,6 @@ export class SuppliersComponent implements OnInit {
   }
 
   loadReceipts(): void {
-     console.log('Cargando con search:', this.receiptsSearch); // ← Para depurar
       const params: any = {
           limit: this.receiptsItemsPerPage(),
           page: this.receiptsCurrentPage()
@@ -327,13 +326,8 @@ export class SuppliersComponent implements OnInit {
           params.search = this.receiptsSearch;
       }
 
-      console.log('Parámetros enviados a la API:', params); // ← Ver qué se envía
       
       this.api.getReceipts(params).subscribe(r => {
-          console.log('RESPUESTA COMPLETA:', r); // ← Ver toda la respuesta
-        console.log('Items recibidos:', r.items);
-        console.log('Total:', r.total);
-        console.log('Cantidad de items:', r.items?.length);
           // Limpiar cantidades de items existentes
           const cleanedReceipts = r.items.map((receipt: any) => ({
               ...receipt,
@@ -519,5 +513,20 @@ export class SuppliersComponent implements OnInit {
   clearReceiptsSearch(): void {
       this.receiptsSearch = '';
       this.onReceiptsSearch();
+  }
+
+  // RECEPCION
+  // Ver movimientos de una recepción
+  viewReceiptMovements(receiptId: string): void {
+    this.api.getReceiptMovements(receiptId).subscribe({
+      next: (movements) => {
+        // Mostrar en modal o consola
+        console.log('Movimientos de la recepción:', movements);
+        // Puedes abrir un modal similar al de productos
+      },
+      error: (err) => {
+        this.toastService.error('Error', 'No se pudo cargar los movimientos');
+      }
+    });
   }
 } 

@@ -99,14 +99,22 @@
                         </span>
                     </td>
 
-                    <!-- Acciones -->
+                    <!-- Acciones - NUEVOS BOTONES -->
                     <td>
-                        <button class="action-btn" (click)="openModal(p)">
-                        <img src="./../../../assets/icons/edit.svg" alt="Editar" width="16" height="16">
-                        </button>
-                        <button class="action-btn del" (click)="deleteProduct(p.id)">
-                        <img src="./../../../assets/icons/delete.svg" alt="Eliminar" width="16" height="16">
-                        </button>
+                        <div class="action-buttons">
+                            <button class="action-btn" (click)="viewMovements(p)" title="Ver historial">
+                                <img src="assets/icons/histo.svg" alt="Ver historial" width="16" height="16">
+                            </button>
+                            <button class="action-btn" (click)="openStockAdjust(p)" title="Ajustar stock">
+                                🔧
+                            </button>
+                            <button class="action-btn" (click)="openModal(p)" title="Editar">
+                                <img src="assets/icons/edit.svg" alt="Editar producto" width="16" height="16">
+                            </button>
+                            <button class="action-btn del" (click)="deleteProduct(p.id)" title="Eliminar">
+                                <img src="assets/icons/delete.svg" alt="Eliminar producto" width="16" height="16">
+                            </button>
+                        </div>
                     </td>
                 </tr>
             }
@@ -176,6 +184,7 @@
         
         <!-- Modal Body -->
         <div class="modal-body">
+            <!-- Imagen + Nombre + SKU en una fila -->
             <div class="field-row">
                 <!-- Imagen del producto -->
                 <div class="field">
@@ -211,34 +220,48 @@
                 <input type="text" [(ngModel)]="form.sku" placeholder="Opcional">
                 </div>
             </div>
+            <!-- Precio costo y precio de venta -->
             <div class="field-row">
                 <div class="field">
-                <label>Precio costo (COP)</label>
-                <input type="text" [value]="formatNum(form.costPrice)"
-                (input)="form.costPrice = parseNum($any($event.target).value)"
-                placeholder="0">
+                    <label>Precio costo (COP)</label>
+                    <input 
+                        type="text" 
+                        [value]="formatNum(form.costPrice)"
+                        (input)="form.costPrice = parseNum($any($event.target).value)"
+                        placeholder="0"
+                        [disabled]="editingProduct() !== null">
                 </div>
                 <div class="field">
-                <label>Precio venta (COP) *</label>
-                <input type="text" [value]="formatNum(form.salePrice)"
-                (input)="form.salePrice = parseNum($any($event.target).value)"
-                placeholder="0">
+                    <label>Precio venta (COP) *</label>
+                    <input type="text" [value]="formatNum(form.salePrice)"
+                    (input)="form.salePrice = parseNum($any($event.target).value)"
+                    placeholder="0">
                 </div>
             </div>
+            <!-- Stock Actual y Stock Minimo -->
             <div class="field-row">
                 <div class="field">
-                <label>Stock actual</label>
-                <input type="text" [value]="formatNum(form.stock)"
-                (input)="form.stock = parseNum($any($event.target).value)"
-                placeholder="0">
+                    <label>Stock actual</label>
+                    <input 
+                        type="text" 
+                        [value]="formatNum(form.stock)"
+                        (input)="form.stock = parseNum($any($event.target).value)"
+                        placeholder="0"
+                        [disabled]="editingProduct() !== null">
+                        @if (editingProduct()) {
+                            <small class="stock-warning">
+                                ⚠️ Para ajustar el stock usa el botón 🔧 en la lista de productos
+                            </small>
+                        }
                 </div>
-                <div class="field">
-                <label>Stock mínimo (alerta)</label>
-                <input type="text" [value]="formatNum(form.minStock)"
-                (input)="form.minStock = parseNum($any($event.target).value)"
-                placeholder="0">
+                <div class="field"> 
+                    <label>Stock mínimo (alerta)</label>
+                    <input type="text" [value]="formatNum(form.minStock)"
+                    (input)="form.minStock = parseNum($any($event.target).value)"
+                    placeholder="0">
                 </div>
             </div>
+            <!-- Unidad y Categoría -->
             <div class="field-row">
                 <div class="field">
                 <label>Unidad</label>
@@ -343,7 +366,7 @@
     <div class="modal-overlay" (click)="productToDelete.set(null)">
     <div class="confirm-modal" (click)="$event.stopPropagation()">
         <div class="confirm-icon">
-        <img src="assets/icon/delete.svg" alt="Eliminar" width="22" height="22">
+        <img src="assets/icons/delete.svg" alt="Eliminar" width="22" height="22">
         </div>
         <h3>¿Eliminar producto?</h3>
         <p>Esta acción no se puede deshacer.</p>
@@ -388,6 +411,74 @@
       <div class="confirm-actions">
         <button class="btn-cancel" (click)="showBulkDelete.set(false)">Cancelar</button>
         <button class="btn-delete" (click)="bulkDelete()">Sí, eliminar todos</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de historial de movimientos -->
+@if (showMovementsModal() && selectedProductForMovements()) {
+  <div class="modal-overlay" (click)="showMovementsModal.set(false)">
+    <div class="movements-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Historial - {{ selectedProductForMovements()?.name }}</h3>
+        <button class="close-btn" (click)="showMovementsModal.set(false)">✕</button>
+      </div>
+      <div class="modal-body">
+        <app-product-movements 
+          [productId]="selectedProductForMovements()!.id"
+          [productUnit]="selectedProductForMovements()!.unit"
+          (close)="showMovementsModal.set(false)">
+        </app-product-movements>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de ajuste de stock -->
+@if (showStockAdjustModal() && selectedProductForAdjust()) {
+  <app-stock-adjust-modal
+    [visible]="showStockAdjustModal()"
+    [productId]="selectedProductForAdjust()!.id"
+    [productName]="selectedProductForAdjust()!.name"
+    [currentStock]="selectedProductForAdjust()!.stock"
+    [unit]="selectedProductForAdjust()!.unit"
+    (closeModal)="showStockAdjustModal.set(false)"
+    (adjusted)="onStockAdjusted()">
+  </app-stock-adjust-modal>
+}
+
+<!-- Modal de reporte bajo stock -->
+@if (showLowStockReport()) {
+  <div class="modal-overlay" (click)="showLowStockReport.set(false)">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>⚠️ Productos con bajo stock</h3>
+        <button class="close-btn" (click)="showLowStockReport.set(false)">✕</button>
+      </div>
+      <div class="modal-body">
+        @if (lowStockProducts().length === 0) {
+          <div class="empty-state">No hay productos con bajo stock</div>
+        }
+        @if (lowStockProducts().length > 0) {
+          <table class="low-stock-table">
+            <thead>
+              <tr><th>Producto</th><th>Stock actual</th><th>Stock mínimo</th><th>Déficit</th><th>Unidad</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+              @for (product of lowStockProducts(); track product.id) {
+                <tr>
+                  <td>{{ product.name }}</td>
+                  <td class="warning">{{ product.stock | number:'1.0-3' }}</td>
+                  <td>{{ product.minStock | number:'1.0-3' }}</td>
+                  <td class="danger">{{ product.minStock - product.stock | number:'1.0-3' }}</td>
+                  <td>{{ product.unit }}</td>
+                  <td><button class="btn-small" (click)="openStockAdjust(product); showLowStockReport.set(false)">Ajustar</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
     </div>
   </div>

@@ -54,6 +54,9 @@ export class SuppliersComponent implements OnInit {
   receiptsSearch = '';
   private receiptsSearchTimer: any;
 
+  // Signal Productos disponibles
+  availableProducts = signal<any[]>([]);
+
   constructor(private api: ApiService) {}
   ngOnInit(): void { 
     this.load();
@@ -344,6 +347,11 @@ export class SuppliersComponent implements OnInit {
   }
   // Edicion recepcion
   openReceiptModal(r?: any): void {
+    // Cargar productos para el selector
+    this.api.getProducts({ limit: 1000 }).subscribe(res => {
+      this.availableProducts.set(res.items);
+    });
+    
     if (r) {
       this.editingReceipt.set(r);
       this.receiptForm = {
@@ -359,17 +367,31 @@ export class SuppliersComponent implements OnInit {
     }
     this.showReceiptModal.set(true);
   }
+  // Cuando selecciona un producto existente
+  onProductSelect(item: any, event: any): void {
+    const productId = event.target.value;
+    if (productId) {
+      const product = this.availableProducts().find(p => p.id === productId);
+      if (product) {
+        item.productName = product.name;
+        item.unit = product.unit;
+        // Opcional: auto-completar el costo unitario
+        // item.unitCost = product.costPrice;
+      }
+    }
+  }
 
   closeReceiptModal(): void { this.showReceiptModal.set(false); }
 
   addReceiptItem(): void {
     this.receiptForm.items = [...this.receiptForm.items, {
-        productName: '', 
-        quantity: 0, 
-        unit: 'unit', 
-        unitCost: 0, 
-        condition: 'bueno', 
-        notes: ''
+      productId: '',
+      productName: '', 
+      quantity: 0, 
+      unit: 'unit', 
+      unitCost: 0, 
+      condition: 'bueno', 
+      notes: ''
     }];
   }
 

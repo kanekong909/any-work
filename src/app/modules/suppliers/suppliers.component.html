@@ -400,14 +400,32 @@
                 </div>
                 
                 <div class="receipt-item-body">
-                    <!-- Nombre del producto -->
+                    <!-- Nombre del producto con selector -->
                     <div class="field-group field-group-full">
-                        <label class="field-label">Nombre del producto *</label>
+                        <label class="field-label">Producto *</label>
+                        
+                        <!-- Selector para productos existentes -->
+                        <select 
+                            [(ngModel)]="item.productId" 
+                            (change)="onProductSelect(item, $event)"
+                            class="field-select">
+                            <option value="">-- Seleccionar producto existente --</option>
+                            @for (product of availableProducts(); track product.id) {
+                                <option [value]="product.id">
+                                    {{ product.name }} (Stock: {{ product.stock }} {{ product.unit }})
+                                </option>
+                            }
+                        </select>
+                        
+                        <!-- O crear nuevo producto -->
+                        <div class="divider">o</div>
+                        
                         <input 
                             type="text" 
                             [(ngModel)]="item.productName" 
-                            placeholder="Ej: Arroz, Aceite, Harina..."
+                            placeholder="Nombre de producto nuevo (si no existe)"
                             class="field-input">
+                        <small class="field-hint">Selecciona un producto existente o escribe uno nuevo</small>
                     </div>
                     
                     <div class="field-row-3">
